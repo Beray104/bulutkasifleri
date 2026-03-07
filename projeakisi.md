@@ -38,6 +38,7 @@
 
 
 Bulut Kaşifleri Projesi – Kapsam ve Hedef Analizi || Amine Ceren Yiğit 
+
 **1. Proje Tanımı**
 
 Bulut Kaşifleri projesi, sosyal medya platformlarından elde edilen verileri toplayarak bu verileri gerçek zamanlı olarak analiz eden ve kullanıcıya anlamlı bilgiler sunan dağıtık bir veri analiz platformudur. Sistem, büyük hacimli sosyal medya verilerini işleyerek güncel trendleri, kullanıcı duygu durumlarını ve içerik eğilimlerini belirlemeyi amaçlamaktadır.
