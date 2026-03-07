@@ -39,10 +39,12 @@
 
 Bulut Kaşifleri Projesi – Kapsam ve Hedef Analizi || Amine Ceren Yiğit 
 **1. Proje Tanımı**
+
 Bulut Kaşifleri projesi, sosyal medya platformlarından elde edilen verileri toplayarak bu verileri gerçek zamanlı olarak analiz eden ve kullanıcıya anlamlı bilgiler sunan dağıtık bir veri analiz platformudur. Sistem, büyük hacimli sosyal medya verilerini işleyerek güncel trendleri, kullanıcı duygu durumlarını ve içerik eğilimlerini belirlemeyi amaçlamaktadır.
 Bu proje, büyük veri teknolojileri ve bulut tabanlı mimariler kullanılarak ölçeklenebilir bir analiz altyapısı oluşturmayı hedeflemektedir.
 
 **2. Projenin Amacı**
+
 Bulut Kaşifleri projesinin temel amacı, sosyal medya platformlarında oluşan büyük veri akışını analiz ederek anlamlı içgörüler üretmektir.
 Projenin başlıca amaçları şunlardır:
 *	Sosyal medya verilerini gerçek zamanlı olarak toplamak
@@ -54,7 +56,9 @@ Projenin başlıca amaçları şunlardır:
 Bu amaçlar doğrultusunda sistem, veri analizi ve karar destek süreçlerine katkı sağlayabilecek bir platform sunacaktır.
 
 **3. Projenin Kapsamı**
+
 Projenin kapsamı, sosyal medya verilerinin toplanması, işlenmesi, analiz edilmesi ve sonuçların kullanıcıya sunulması süreçlerini içermektedir.
+
 Proje kapsamında gerçekleştirilecek temel faaliyetler şunlardır:
 *	Sosyal medya API'leri aracılığıyla veri toplama
 * Toplanan verilerin ön işleme sürecinden geçirilmesi
@@ -66,6 +70,7 @@ Proje kapsamında gerçekleştirilecek temel faaliyetler şunlardır:
 Proje kapsamında geliştirilecek sistem, analiz sonuçlarını kullanıcıların inceleyebileceği bir web tabanlı arayüz üzerinden sunacaktır.
 
 Kapsam Dışı Unsurlar
+
 Aşağıdaki özellikler proje kapsamı dışında tutulmaktadır:
 *	Sosyal medya platformu geliştirilmesi
 *	Kullanıcıların içerik paylaşabileceği bir sosyal ağ oluşturulması
@@ -74,6 +79,7 @@ Aşağıdaki özellikler proje kapsamı dışında tutulmaktadır:
 Bu sınırlamalar, projenin uygulanabilir ve yönetilebilir bir ölçekte kalmasını sağlamak amacıyla belirlenmiştir.
 
 **4. Projenin Hedefleri**
+
 Projenin hedefleri teknik ve işlevsel hedefler olarak iki ana gruba ayrılabilir.
 Teknik Hedefler
 *	Dağıtık sistem mimarisi kullanarak veri işleme altyapısı oluşturmak
@@ -87,6 +93,7 @@ Teknik Hedefler
 *	Zaman bazlı veri analizini görselleştirmek
 
 **5. Projenin Temel İşlevleri**
+
 Bulut Kaşifleri sistemi aşağıdaki temel işlevlere sahip olacaktır.
 1. Veri Toplama
 Sistem, sosyal medya platformlarının API servislerini kullanarak belirli anahtar kelimeler, hashtagler veya konular üzerinden veri toplayacaktır.
@@ -114,6 +121,7 @@ Analiz edilen veriler, hızlı erişim ve sorgulama amacıyla uygun veri depolam
 Sistem, analiz sonuçlarını grafikler, tablolar ve istatistiksel görseller aracılığıyla kullanıcıya sunacaktır.
 
 **6. Kullanıcı Rolleri**
+
 Sistemde iki temel kullanıcı rolü bulunmaktadır.
 Veri Analisti
 Sosyal medya verilerini inceleyen ve analiz sonuçlarını değerlendiren kullanıcıdır.
@@ -121,6 +129,7 @@ Sistem Yöneticisi
 Sistemin teknik işleyişini ve veri akışını kontrol eden kullanıcıdır.
 
 **7. Kullanıcı Hikayeleri (User Stories)**
+
 Kullanıcı hikayeleri, sistemin kullanıcı ihtiyaçlarına göre nasıl çalışacağını tanımlamaktadır.
 Veri Analisti
 *	Bir veri analisti olarak sosyal medya trendlerini görmek istiyorum, böylece güncel konuları analiz edebilirim.
@@ -132,6 +141,7 @@ Sistem Yöneticisi
 *	Bir sistem yöneticisi olarak sistemin veri işleme kapasitesini izlemek istiyorum, böylece gerektiğinde ölçeklendirme yapabilirim.
 
 **8. Sonuç**
+
 Bulut Kaşifleri projesi, sosyal medya verilerinin gerçek zamanlı olarak analiz edilmesini sağlayan dağıtık bir veri analiz platformu geliştirmeyi amaçlamaktadır. Proje, büyük veri teknolojilerinin kullanıldığı ölçeklenebilir bir sistem mimarisi üzerine kurulacaktır.
 Bu sistem sayesinde kullanıcılar sosyal medya trendlerini, kullanıcı duygu analizlerini ve içerik eğilimlerini analiz edebilecek ve bu verilerden anlamlı çıkarımlar elde edebilecektir.
 
