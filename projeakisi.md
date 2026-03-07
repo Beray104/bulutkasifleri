@@ -38,11 +38,11 @@
 
 
 Bulut Kaşifleri Projesi – Kapsam ve Hedef Analizi || Amine Ceren Yiğit 
-1. Proje Tanımı
+**1. Proje Tanımı**
 Bulut Kaşifleri projesi, sosyal medya platformlarından elde edilen verileri toplayarak bu verileri gerçek zamanlı olarak analiz eden ve kullanıcıya anlamlı bilgiler sunan dağıtık bir veri analiz platformudur. Sistem, büyük hacimli sosyal medya verilerini işleyerek güncel trendleri, kullanıcı duygu durumlarını ve içerik eğilimlerini belirlemeyi amaçlamaktadır.
 Bu proje, büyük veri teknolojileri ve bulut tabanlı mimariler kullanılarak ölçeklenebilir bir analiz altyapısı oluşturmayı hedeflemektedir.
 
-2. Projenin Amacı
+**2. Projenin Amacı**
 Bulut Kaşifleri projesinin temel amacı, sosyal medya platformlarında oluşan büyük veri akışını analiz ederek anlamlı içgörüler üretmektir.
 Projenin başlıca amaçları şunlardır:
 *	Sosyal medya verilerini gerçek zamanlı olarak toplamak
@@ -53,7 +53,7 @@ Projenin başlıca amaçları şunlardır:
 *	Büyük veri teknolojilerinin uygulanabileceği bir analiz altyapısı oluşturmak
 Bu amaçlar doğrultusunda sistem, veri analizi ve karar destek süreçlerine katkı sağlayabilecek bir platform sunacaktır.
 
-3. Projenin Kapsamı
+**3. Projenin Kapsamı**
 Projenin kapsamı, sosyal medya verilerinin toplanması, işlenmesi, analiz edilmesi ve sonuçların kullanıcıya sunulması süreçlerini içermektedir.
 Proje kapsamında gerçekleştirilecek temel faaliyetler şunlardır:
 *	Sosyal medya API'leri aracılığıyla veri toplama
@@ -73,7 +73,7 @@ Aşağıdaki özellikler proje kapsamı dışında tutulmaktadır:
 *	Tüm sosyal medya platformlarının entegrasyonu
 Bu sınırlamalar, projenin uygulanabilir ve yönetilebilir bir ölçekte kalmasını sağlamak amacıyla belirlenmiştir.
 
-4. Projenin Hedefleri
+**4. Projenin Hedefleri**
 Projenin hedefleri teknik ve işlevsel hedefler olarak iki ana gruba ayrılabilir.
 Teknik Hedefler
 *	Dağıtık sistem mimarisi kullanarak veri işleme altyapısı oluşturmak
@@ -86,7 +86,7 @@ Teknik Hedefler
 *	En çok kullanılan hashtagleri ve kelimeleri tespit etmek
 *	Zaman bazlı veri analizini görselleştirmek
 
-5. Projenin Temel İşlevleri
+**5. Projenin Temel İşlevleri**
 Bulut Kaşifleri sistemi aşağıdaki temel işlevlere sahip olacaktır.
 1. Veri Toplama
 Sistem, sosyal medya platformlarının API servislerini kullanarak belirli anahtar kelimeler, hashtagler veya konular üzerinden veri toplayacaktır.
@@ -102,7 +102,8 @@ Sistem, veri akışını analiz ederek:
 *	popüler konuları
 tespit edecektir.
 4. Duygu Analizi
-Paylaşımlar metin analizi yöntemleri kullanılarak sınıflandırılacaktır. İçerikler:
+Paylaşımlar metin analizi yöntemleri kullanılarak sınıflandırılacaktır.
+İçerikler:
 *	pozitif
 *	negatif
 *	nötr
@@ -112,14 +113,14 @@ Analiz edilen veriler, hızlı erişim ve sorgulama amacıyla uygun veri depolam
 6. Veri Görselleştirme
 Sistem, analiz sonuçlarını grafikler, tablolar ve istatistiksel görseller aracılığıyla kullanıcıya sunacaktır.
 
-6. Kullanıcı Rolleri
+**6. Kullanıcı Rolleri**
 Sistemde iki temel kullanıcı rolü bulunmaktadır.
 Veri Analisti
 Sosyal medya verilerini inceleyen ve analiz sonuçlarını değerlendiren kullanıcıdır.
 Sistem Yöneticisi
 Sistemin teknik işleyişini ve veri akışını kontrol eden kullanıcıdır.
 
-7. Kullanıcı Hikayeleri (User Stories)
+**7. Kullanıcı Hikayeleri (User Stories)**
 Kullanıcı hikayeleri, sistemin kullanıcı ihtiyaçlarına göre nasıl çalışacağını tanımlamaktadır.
 Veri Analisti
 *	Bir veri analisti olarak sosyal medya trendlerini görmek istiyorum, böylece güncel konuları analiz edebilirim.
@@ -130,7 +131,7 @@ Sistem Yöneticisi
 *	Bir sistem yöneticisi olarak veri akışının sorunsuz çalışmasını izlemek istiyorum, böylece sistem performansını kontrol edebilirim.
 *	Bir sistem yöneticisi olarak sistemin veri işleme kapasitesini izlemek istiyorum, böylece gerektiğinde ölçeklendirme yapabilirim.
 
-8. Sonuç
+**8. Sonuç**
 Bulut Kaşifleri projesi, sosyal medya verilerinin gerçek zamanlı olarak analiz edilmesini sağlayan dağıtık bir veri analiz platformu geliştirmeyi amaçlamaktadır. Proje, büyük veri teknolojilerinin kullanıldığı ölçeklenebilir bir sistem mimarisi üzerine kurulacaktır.
 Bu sistem sayesinde kullanıcılar sosyal medya trendlerini, kullanıcı duygu analizlerini ve içerik eğilimlerini analiz edebilecek ve bu verilerden anlamlı çıkarımlar elde edebilecektir.
 
