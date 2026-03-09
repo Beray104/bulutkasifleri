@@ -6,7 +6,7 @@
 | Ekip Üyesi | Sorumluluk Alanı | Bu Hafta Ne Yaptı? | Durum |
 | :--- | :--- | :--- | :---: |
 | **Amine Ceren Yiğit** | Analiz ve Kapsam | [Buraya kısa not yazın] | 🟡 |
-| **Hasan Kara** | Teknoloji Araştırması | [Buraya kısa not yazın] | 🟡 |
+| **Hasan Kara** | Teknoloji Araştırması | [Buraya kısa not yazın] | 🟢 |
 | **Muhammet Eren Mente** | Teknik Altyapı | [Buraya kısa not yazın] | 🟢 |
 | **Fatih Mehmet Albayrak** | Versiyon Kontrol | [Buraya kısa not yazın] | ⚪ |
 | **Beray Akar** | Gereksinim & Belgeleme | [Buraya kısa not yazın] | 🟡 |
@@ -145,6 +145,69 @@ Sistem Yöneticisi
 
 Bulut Kaşifleri projesi, sosyal medya verilerinin gerçek zamanlı olarak analiz edilmesini sağlayan dağıtık bir veri analiz platformu geliştirmeyi amaçlamaktadır. Proje, büyük veri teknolojilerinin kullanıldığı ölçeklenebilir bir sistem mimarisi üzerine kurulacaktır.
 Bu sistem sayesinde kullanıcılar sosyal medya trendlerini, kullanıcı duygu analizlerini ve içerik eğilimlerini analiz edebilecek ve bu verilerden anlamlı çıkarımlar elde edebilecektir.
+
+
+
+
+# ☁️ BULUT TEKNOLOJİLERİ ARAŞTIRMA VE KARŞILAŞTIRMA RAPORU
+
+**Hazırlayan:** Hasan Kara  
+**Proje Adı:** Dağıtık Sosyal Medya Analiz Platformu  
+**Görev:** Bulut Teknolojileri Araştırması  
+**Teslim Tarihi:** 7 Mart 2026
+
+---
+
+## 1. GİRİŞ VE TEKNİK TERİMLER
+Bu rapor, projemizdeki karmaşık veri işleme süreçlerini destekleyecek bulut altyapısını analiz eder. Projemiz şu teknolojiler üzerine kuruludur:
+
+* **Apache Kafka:** Veri akışını kesintisiz yönetmek için kullanılır.
+* **Apache Spark:** Dağıtık mimaride gerçek zamanlı veri analizi ve duygu analizi yapar.
+* **Elasticsearch:** Verilerin hızlıca filtrelenmesini ve sorgulanmasını sağlar.
+
+---
+
+## 2. PLATFORMLARIN KARŞILAŞTIRMALI ANALİZİ
+
+### 2.1. Amazon Web Services (AWS)
+* **Avantajlar (+):** Sektörün en köklü platformudur; Kafka yönetimi için Amazon MSK ve Spark işlemleri için Amazon EMR gibi çok olgun servisler sunar.
+* **Dezavantajlar (-):** Servis sayısı çok fazla olduğu için yapılandırması karmaşıktır; yanlış bir ayar bütçeyi hızla tüketebilir.
+* **Maliyet:** Kullandıkça öde modeli esnektir ancak veri transferi (Data Out) ücretleri 3 aylık bir projede sürpriz maliyetler çıkarabilir.
+
+### 2.2. Google Cloud Platform (GCP)
+* **Avantajlar (+):** Büyük veri işlemede kullanılan Dataproc servisi, Spark kümelerini saniyeler içinde ayağa kaldırır. Duygu analizi için Google'ın hazır NLP API'leri en ileri seviyededir.
+* **Dezavantajlar (-):** Kurumsal uygulama entegrasyonu tarafında AWS kadar geniş bir kütüphane sunmayabilir.
+* **Maliyet:** Yeni kullanıcılara verilen 300$ kredi, tam olarak projemizin 3 aylık süresini kapsayacak şekilde planlanmıştır.
+
+### 2.3. Microsoft Azure
+* **Avantajlar (+):** Java/Spring Boot ekosistemiyle uyumludur; öğrenci mailiyle kredi kartsız 100$ kredi verir.
+* **Dezavantajlar (-):** Yönetim paneli ve konfigürasyon süreçleri rakiplerine göre daha yavaş kalabilmektedir.
+* **Maliyet:** Orta düzey projeler için uygundur ancak yoğun veri akışında 100$ kredi yetersiz kalabilir.
+
+### 2.4. Alternatif Çözümler (DigitalOcean & Oracle)
+* **DigitalOcean:** Sabit fiyatlıdır (aylık 5-10$); Kafka'yı "Managed" servis olarak sunarak kurulum yükünü azaltır.
+* **Oracle Cloud (OCI):** "Always Free" katmanı ile 4 adet güçlü ARM sunucuyu ömür boyu ücretsiz vererek maliyeti sıfıra indirir.
+
+---
+
+## 3. TEKNİK KARŞILAŞTIRMA TABLOSU
+
+| Özellik | AWS | GCP | Azure | DigitalOcean |
+| :--- | :--- | :--- | :--- | :--- |
+| **Kafka/Spark Gücü** | Çok Yüksek | Çok Yüksek | Yüksek | Orta |
+| **Öğrenci Desteği** | Kısıtlı Free Tier | 300$ Kredi | 100$ Kredi | 200$ Kredi (Geçici) |
+| **3 Ay Süre Uyumu** | Orta | **Tam Uyum** | Orta | **Tam Uyum** |
+| **Maliyet Tahmini** | Değişken | Ücretsiz (Kredi) | Ücretsiz (Kredi) | Sabit |
+
+---
+
+## 4. SONUÇ VE ÖNERİ
+Proje süresi (3 ay) ve saniyedeki veri işleme ihtiyacı göz önüne alındığında;
+
+1. **Birinci Tercih (GCP):** Proje takvimiyle örtüşen 300 dolarlık kredisi ve Dataproc servisinin hızı nedeniyle önerilir.
+2. **Sektörel Tercih (AWS):** Profesyonel portfolyo değeri ve geniş dökümantasyon desteği için tercih edilmelidir.
+
+**Karar:** Geliştirme sürecinde bütçe güvenliği ve analiz performansı sağlamak adına projenin **Google Cloud Platform (GCP)** üzerinde yürütülmesi uygun görülmüştür.
 
 
 
