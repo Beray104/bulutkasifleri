@@ -215,28 +215,51 @@ Bulut Kaşifleri projesinde veri yönetimi, farklı sosyal medya platformlarınd
 
 1.1 Veri Kaynak Katmanı (Data Source Layer)
 Bu katman, verinin elde edildiği tüm sosyal medya platformlarını kapsamaktadır.
+
 Veri kaynakları:
+
 •	Twitter (X API)
+
 •	Instagram
+
 •	Pinterest
+
 •	Reddit API
+
 •	YouTube Data API
+
 Veri türleri:
+
 •	Metin içerikleri (post, tweet, açıklamalar)
+
 •	Hashtagler
+
 •	Görsel açıklamaları (caption)
+
 •	Kullanıcı bilgileri
+
 •	Zaman bilgisi (timestamp)
+
 Veri alma yöntemleri:
+
 1.	Resmi API kullanımı
+
 Platformların sağladığı API'ler üzerinden veri çekilir.
+
 Not: Instagram ve Pinterest API erişimleri kısıtlı olabilir.
-2.	Anahtar kelime ve hashtag bazlı sorgular
+
+3.	Anahtar kelime ve hashtag bazlı sorgular
+
 Belirli konular üzerinden veri filtrelenir.
-3.	Periyodik veri çekme (Polling)
+
+4.	Periyodik veri çekme (Polling)
+
 Belirli zaman aralıklarında veri alınır.
-4.	Gerçek zamanlı veri akışı (Streaming)
+
+5.	Gerçek zamanlı veri akışı (Streaming)
+
 Destekleyen platformlarda anlık veri akışı sağlanır.
+
 Bu katmanda veri ham ve işlenmemiş durumdadır.
 
 
