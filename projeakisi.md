@@ -262,6 +262,242 @@ Destekleyen platformlarda anlık veri akışı sağlanır.
 
 Bu katmanda veri ham ve işlenmemiş durumdadır.
 
+2. Tablolar ve Açıklamaları
+
+2.1 USERS
+
+
+Kullanıcı bilgilerini tutar.
+
+users
+
+------
+
+id (PK)
+
+kullanıcı adı
+
+platform
+
+takipçi
+
+email
+
+oluşturulma zamanı
+
+
+2.2 POSTS
+
+Sosyal medya içeriklerini tutar.
+
+posts
+
+------
+
+id (PK)
+
+platform
+
+içerik
+
+oluşturulma zamanı
+
+dil
+
+kullanıcı id  (FK)
+
+2.3 HASHTAGS
+
+Hashtag bilgilerini tutar.
+
+hashtags
+
+------
+
+id (PK)
+
+tag ismi
+
+
+2.4 POST_HASHTAG
+
+Post ile hashtag arasındaki çoktan çoğa ilişkiyi sağlar.
+
+post_hashtag
+
+------
+
+post_id (FK)
+
+hashtag_id (FK)
+
+
+
+
+
+2.5 SENTIMENT_ANALYSIS
+
+Her post için yapılan duygu analizi sonuçlarını tutar.
+
+Duygu analizi
+
+------
+
+id (PK)
+
+post_id (FK)
+
+ifadeler (pozitif, negatif, nötr)
+
+skor
+
+analiz zamanı
+
+
+
+2.6 TRENDS
+
+Trend hashtag ve analiz sonuçlarını tutar.
+
+trends
+
+------
+
+id (PK)
+
+hashtag_id (FK)
+
+sayaç
+
+time_window
+
+oluşturulma zamanı
+
+
+3. Tablolar Arası İlişkiler
+
+•	users ile posts arasında bire çok ilişki vardır.
+
+Bir kullanıcı birden fazla post paylaşabilir.
+
+•	posts ile sentiment_analysis arasında bire bir ilişki vardır.
+
+Her post için bir analiz sonucu bulunur.
+
+•	posts ile hashtags arasında çoktan çoğa ilişki vardır.
+
+Bir post birden fazla hashtag içerebilir, bir hashtag birden fazla postta bulunabilir.
+
+•	hashtags ile trends arasında bire çok ilişki vardır.
+
+Bir hashtag farklı zaman dilimlerinde farklı trend kayıtlarına sahip olabilir.
+
+
+
+4. Veri Tutma Stratejisi
+
+4.1 Ham Veri Yönetimi
+
+•	Ham sosyal medya verileri yüksek hacimlidir.
+
+•	Bu veriler kısa süreli saklanır (örneğin 7–30 gün).
+
+•	Eski veriler sistemden silinir veya arşivlenir.
+
+Amaç: Depolama maliyetini azaltmak ve sistemi hızlı tutmak.
+
+
+4.2 Analiz Verisi Yönetimi
+
+•	Duygu analizi ve trend verileri uzun süre saklanır.
+
+•	Dashboard ve kullanıcı sorguları bu veriler üzerinden çalışır.
+
+•	Analiz verileri optimize edilmiş şekilde tutulur.
+
+4.3 Zaman Bazlı Bölümlendirme (Partitioning)
+
+Veriler zaman bazlı olarak bölümlere ayrılır.
+
+Örnek:
+
+•	Günlük veya haftalık partition kullanımı
+
+•	Sorgular sadece ilgili zaman aralığında çalışır
+
+Bu yöntem performansı artırır.
+
+
+
+5. Kullanılacak Veritabanı Teknolojileri
+
+•	İlişkisel veritabanı: PostgreSQL veya MySQL
+
+Yapısal veriler ve ilişkiler için kullanılır.
+
+•	Analitik ve arama motoru: Elasticsearch
+
+Hızlı arama, filtreleme ve dashboard işlemleri için kullanılır.
+
+
+6. Genel Değerlendirme
+
+Bu veritabanı tasarımı:
+
+•	Ölçeklenebilir bir yapı sunar
+
+•	Büyük veri akışını yönetebilir
+
+•	Gerçek zamanlı analiz sistemine uygundur
+
+•	Veri tekrarını önler ve ilişkisel bütünlüğü korur
+
+Tasarım, proje kapsamına uygun olarak sade tutulmuş ve genişletilebilir şekilde planlanmıştır.
+
+
+
+7. Genel Veri Akışı
+
+Sistem genelinde veri akışı aşağıdaki gibidir:
+
+Sosyal Medya Platformları
+
+(Twitter, Instagram, Pinterest, vb.)
+
+        ↓
+Veri Toplama Katmanı
+        
+        ↓
+Kafka (Streaming)
+        
+        ↓
+Spark (Processing)
+        
+        ↓
+Veritabanları (Storage)
+        
+        ↓
+Web Arayüz (Presentation)
+
+
+8. Veri Yönetimi Kararlarının Gerekçesi
+
+•	Farklı sosyal medya platformları tek sistemde birleştirilmiştir
+
+•	Veri standardizasyonu sayesinde analiz süreci kolaylaştırılmıştır
+
+•	Streaming mimarisi ile gerçek zamanlı veri işlenmesi sağlanmıştır
+
+•	Ham veri ve analiz verisi ayrılarak performans artırılmıştır
+
+•	Dağıtık yapı ile sistem ölçeklenebilir hale getirilmiştir
+
+Bu mimari, çoklu veri kaynağına sahip büyük veri sistemlerinin yönetimi için uygun, genişletilebilir ve performans odaklı bir çözüm 
+sunmaktadır.
+
+
+
+
 
 
 
