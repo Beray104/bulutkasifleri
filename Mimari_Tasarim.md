@@ -1,4 +1,4 @@
-# 🏗️ DAĞITIK SOSYAL MEDYA ANALİZ PLATFORMU: MİMARİ TASARIM DOKÜMANI
+# 🏗️ DAĞITIK SOSYAL MEDYA ANALİZ PLATFORMU: TEKNİK MİMARİ VE ENTEGRASYON RAPORU
 
 **Hazırlayan:** Hasan Kara  
 **Görev:** Sistem Bileşenleri Entegrasyonu ve Teknik Mimari  
@@ -6,44 +6,64 @@
 
 ---
 
-## 1. GİRİŞ VE HEDEFLER
-Bu doküman, projemizin saniyede binlerce veriyi işleyebilecek dağıtık mimarisini ve Google Cloud Platform (GCP) üzerindeki entegrasyon süreçlerini detaylandırır. Temel hedef; düşük gecikmeli, hata toleranslı ve ölçeklenebilir bir analiz hattı kurmaktır.
+## 1. STRATEJİK MİMARİ VE HEDEFLER
+Bu döküman, sosyal medya platformlarından (Twitter, Instagram, Reddit vb.) elde edilen büyük veri akışını gerçek zamanlı analiz eden dağıtık platformun teknik altyapısını tanımlar. Temel hedef, düşük gecikmeli, hata toleranslı ve ölçeklenebilir bir analiz hattı kurmaktır.
 
 ---
 
-## 2. SİSTEM KOMPONENTLERİNİN ENTEGRASYONU VE ÇALIŞMA SÜRECİ
+## 2. SİSTEM BİLEŞENLERİ VE ENTEGRASYON KATMANLARI
 
-Sistemimizdeki teknolojiler birbirine şu teknik protokoller ve yöntemlerle entegre edilmiştir:
+Sistemimiz, verinin kaynağından son kullanıcıya ulaşana kadar geçtiği 5 ana katmandan oluşmaktadır:
 
-### 2.1. Veri Toplama ve Kafka Entegrasyonu (Ingestion)
-* **Entegrasyon:** Sosyal medya API'lerinden gelen ham veriler, bir **Python Producer** script'i aracılığıyla çekilir.
-* **Bağlantı:** Veriler, Kafka'nın varsayılan **9092 portu** üzerinden sisteme basılır.
-* **Çalışma Mantığı:** Gelen her veri, bir "Topic" içine JSON objesi olarak asenkron şekilde yazılır. Bu sayede veri hızı artsa bile sistem tıkanmaz.
+### 2.1. Veri Kaynak ve Toplama Katmanı (Ingestion)
+* **Veri Kaynakları:** X (Twitter), Instagram, Pinterest ve Reddit gibi platformların resmi API servisleri kullanılır.
+* [cite_start]**Entegrasyon:** Her platform için ayrı veri çekme modüllerine sahip Spring Boot tabanlı servisler kullanılır. [cite: 118, 119]
+* [cite_start]**Normalizasyon:** Farklı platformlardan gelen ham veriler ortak bir JSON yapısına (platform, içerik, hashtag, zaman damgası) dönüştürülerek standartlaştırılır. [cite: 121, 134]
 
-### 2.2. Spark ve Dataproc Entegrasyonu (Processing)
-* **Entegrasyon:** GCP Dataproc üzerinde kurulu olan Spark, Kafka topic'lerine "Subscriber" (abone) olarak bağlanır.
-* **Bağlantı:** Veri okuma işlemi kesintisiz takip edilir (offset yönetimi ile).
-* **Çalışma Mantığı:** Spark, gelen verileri **Memory (Bellek)** üzerinde işler. NLP kütüphaneleri her satırı analiz eder ve sonuçları geçici bir veri tablosuna dönüştürür.
+### 2.2. Veri Akış ve Mesajlaşma Katmanı (Streaming)
+* [cite_start]**Teknoloji:** **Apache Kafka** [cite: 138]
+* [cite_start]**Entegrasyon:** Veri toplama servisleri (Producer), normalize edilmiş veriyi ilgili Kafka topic'lerine gönderir. [cite: 140, 145]
+* [cite_start]**Görev:** Yüksek hacimli veri akışını yönetmek ve sistem bileşenleri arasındaki bağımlılığı (decoupling) azaltarak veri kaybını önlemektir. [cite: 141, 143]
 
-### 2.3. Elasticsearch ve Cloud Run Entegrasyonu (Output)
-* **Entegrasyon:** Analiz edilen veriler, Spark'ın **Elasticsearch-Hadoop** kütüphanesi kullanılarak Elasticsearch indekslerine "REST API" üzerinden gönderilir.
-* **Bağlantı:** Elasticsearch'ün **9200 portu** üzerinden JSON formatında indeksleme yapılır.
-* **Sistem Çalışması:** Cloud Run üzerinde koşan Frontend (React/Vue), Elasticsearch'e sorgular atarak analiz edilen verileri saniyeler içinde görselleştirir.
+### 2.3. Veri İşleme ve Analiz Katmanı (Processing)
+* [cite_start]**Teknoloji:** **Apache Spark (Streaming)** [cite: 153]
+* **Entegrasyon:** Spark, Kafka topic'lerine "Subscriber" olarak bağlanarak veriyi saniyeler içinde işler.
+* [cite_start]**Analiz İşlevleri:** Gürültü giderme, kelime frekans analizi ve duygu analizi (pozitif, negatif, nötr sınıflandırma) gerçekleştirilir. [cite: 155, 158, 159]
+
+### 2.4. Veri Saklama Katmanı (Storage)
+Performans odaklı **hibrit bir depolama** stratejisi izlenir:
+* [cite_start]**Operasyonel Veritabanı (PostgreSQL/MySQL):** Kullanıcı ve gönderi gibi yapısal verilerin ilişkisel bütünlüğünü ve kısa süreli saklanmasını sağlar. [cite: 171, 172]
+* [cite_start]**Analitik Veritabanı (Elasticsearch):** İşlenmiş analiz sonuçlarını hızlı arama ve dashboard filtreleme işlemleri için uzun süreli saklar. [cite: 181, 182]
+
+### 2.5. Sunum Katmanı (Presentation)
+* [cite_start]**Arayüz:** Dashboard üzerinden trend hashtag'ler, duygu analizi sonuçları ve platform karşılaştırmalı istatistikler görselleştirilir. [cite: 191, 195]
+* [cite_start]**Kullanıcı Rolleri:** Veri analistleri sonuçları değerlendirirken, sistem yöneticileri veri akışını ve kapasiteyi (ölçeklendirme) kontrol eder. [cite: 66, 68]
 
 ---
 
-## 3. HATA TOLERANSI VE SİSTEM GÜVENLİĞİ
-* **Entegre Güvenlik:** Tüm bileşenler **GCP VPC** içinde izole edilmiştir.
-* **Resiliency:** Spark'ın `checkpointLocation` özelliği sayesinde sistem çökerse veri kaybı yaşanmadan devam eder.
+## 3. TEKNİK PROTOKOLLER VE PORT YÖNETİMİ
+
+| Birim | Protokol | Port | Görev |
+| :--- | :--- | :--- | :--- |
+| **Kafka Broker** | TCP | 9092 | Dağıtık veri akışı ve kuyruklama |
+| **Elasticsearch** | REST API | 9200 | Hızlı veri indeksleme ve arama |
+| **Veritabanı** | SQL | 5432/3306 | Yapısal verilerin kalıcı saklanması |
 
 ---
 
-## 📐 4. GENEL SİSTEM MİMARİSİ (ŞEMA)
+## 4. ÖLÇEKLENEBİLİRLİK VE GÜVENLİK
+* **Hata Toleransı:** Spark'ın `checkpointLocation` özelliği sayesinde sistem çökmelerinde veri kaybı yaşanmaz.
+* **Güvenlik:** Tüm bileşenler Google Cloud VPC (Sanal Özel Ağ) içinde izole edilerek dış erişime kapatılmıştır.
+* [cite_start]**Veri Tutma:** Depolama maliyetlerini optimize etmek için ham veriler 7-30 gün arası tutulurken, analiz verileri daha uzun süreli saklanır. [cite: 252, 256]
+
+---
+
+## 📐 5. GENEL SİSTEM MİMARİSİ (ŞEMA)
 
 ```mermaid
 graph TD
     subgraph "1. Veri Kaynakları"
-    API[Sosyal Medya Verileri]
+    API[Sosyal Medya API'leri]
     end
 
     subgraph "2. Veri Giriş Katmanı (GCP)"
@@ -63,9 +83,6 @@ graph TD
     API --> K
 
     style K fill:#f96,color:#fff,stroke:#333
-    style S fill:#69f,color:#fff,stroke:#333
-    style E fill:#7f7,color:#333,stroke:#333
-    style WA fill:#f66,color:#fff,stroke:#333
     style S fill:#69f,color:#fff,stroke:#333
     style E fill:#7f7,color:#333,stroke:#333
     style WA fill:#f66,color:#fff,stroke:#333
