@@ -24,64 +24,32 @@ Bu doküman, projemizin saniyede binlerce veriyi işleyebilecek dağıtık mimar
 
 
 
-\## 2. GENEL SİSTEM MİMARİSİ (DİYAGRAM)
-
-
-
-```mermaid
-
 graph TD
+    subgraph "1. Veri Kaynakları"
+    API[Social Media APIs - X/IG/FB]
+    end
 
-\&#x20;   subgraph "1. Veri Kaynakları"
+    subgraph "2. Veri Ingestion (GCP)"
+    K[(Apache Kafka)] -- "Mesaj Kuyruğu" --> S{Apache Spark}
+    ZK[Zookeeper] -. "Koordinasyon" .-> K
+    end
 
-\&#x20;   API\\\[Social Media APIs - X/IG/FB]
+    subgraph "3. İşlem ve Analiz (Dataproc)"
+    S -- "Sentiment Analysis" --> E[(Elasticsearch)]
+    GCS[Cloud Storage] -. "Checkpointing" .-> S
+    end
 
-\&#x20;   end
+    subgraph "4. Sunum ve Visual"
+    E --> CR[Cloud Run: API/Frontend]
+    CR --> HP[Hoca Paneli / Dashboard]
+    end
 
+    API --> K
 
-
-\&#x20;   subgraph "2. Veri Ingestion (GCP)"
-
-\&#x20;   K\\\[(Apache Kafka)] -- "Mesaj Kuyruğu" --> S{Apache Spark}
-
-\&#x20;   ZK\\\[Zookeeper] -. "Koordinasyon" .-> K
-
-\&#x20;   end
-
-
-
-\&#x20;   subgraph "3. İşlem ve Analiz (Dataproc)"
-
-\&#x20;   S -- "Sentiment Analysis" --> E\\\[(Elasticsearch)]
-
-\&#x20;   GCS\\\[Cloud Storage] -. "Checkpointing" .-> S
-
-\&#x20;   end
-
-
-
-\&#x20;   subgraph "4. Sunum ve Visual"
-
-E --> CR\\\[Cloud Run: API/Frontend]
-
-\&#x20;   CR --> HP\\\[Hoca Paneli / Dashboard]
-
-\&#x20;   end
-
-
-
-\&#x20;   API --> K
-
-
-
-\&#x20;   style K fill:#f96,color:#fff,stroke:#333
-
-\&#x20;   style S fill:#69f,color:#fff,stroke:#333
-
-\&#x20;   style E fill:#7f7,color:#333,stroke:#333
-
-\&#x20;   style CR fill:#f66,color:#fff,stroke:#333
-
+    style K fill:#f96,color:#fff,stroke:#333
+    style S fill:#69f,color:#fff,stroke:#333
+    style E fill:#7f7,color:#333,stroke:#333
+    style CR fill:#f66,color:#fff,stroke:#333
 
 
 
