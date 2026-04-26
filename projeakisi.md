@@ -777,5 +777,63 @@ graph TD
     style S fill:#69f,color:#fff,stroke:#333
     style E fill:#7f7,color:#333,stroke:#333
     style WA fill:#f66,color:#fff,stroke:#333
+```
+
+---
+
+# 🧪 UI ENTEGRASYON TESTLERİ VE HATA DÜZELTMELERİ
+
+**Hazırlayan:** Beray Akar
+**Görev:** Geliştirilen kullanıcı arayüzü bileşenlerinin entegrasyon testlerinin tamamlanması, hataların düzeltilmesi ve test sonuçlarının dokümante edilmesi
+**Teslim Tarihi:** 26 Nisan 2026
+
+---
+
+## 1. Yapılan İş Özeti
+
+Hafta 5 kapsamında web arayüzünü oluşturan tüm bileşenler (`index.html`, `api.js`, `style.css`) entegrasyon açısından incelenmiş, 10 test senaryosu üzerinden doğrulanmış ve tespit edilen 9 hata düzeltilmiştir. Sonuçlar ayrı bir test raporu dosyasında detaylı olarak belgelenmiştir.
+
+## 2. Test Edilen Bileşenler
+
+- Arama input alanı ve test butonu
+- Pasta grafik (Duygu Analizi Dağılımı)
+- Çizgi grafik (Trend Akışı)
+- Alert ve durum mesajı sistemi
+- API hata yönetimi ve simülasyon (mock) akışı
+
+## 3. Tespit Edilen ve Düzeltilen Hatalar
+
+| # | Hata | Çözüm |
+|---|------|-------|
+| 1 | Mobil viewport meta etiketi yoktu | `<meta name="viewport">` eklendi |
+| 2 | Enter tuşu ile arama yapılamıyordu | `keydown` listener eklendi |
+| 3 | Input için label/aria-label yoktu | Erişilebilirlik etiketleri eklendi |
+| 4 | Çift tıklama koruması yoktu | Buton `disabled` + loading state |
+| 5 | Alert mesajları gayri resmi tondaydı | Profesyonel dil + durum paneli |
+| 6 | Grafik canvas yüksekliği kontrolsüzdü | `max-height` + `maintainAspectRatio` |
+| 7 | Mobilde grid bozuluyordu | `@media (max-width: 768px)` kuralı |
+| 8 | Sürekli alert kullanımı UX'i bozuyordu | Hata bildirimleri durum paneline taşındı |
+| 9 | Input değerinde `trim()` yapılmıyordu | Boşluk kontrolü eklendi |
+
+## 4. Test Sonucu
+
+| Metrik | Değer |
+|---|---|
+| Toplam Senaryo | 10 |
+| Başarılı (PASSED) | 10 |
+| Başarısız (FAILED) | 0 |
+| Düzeltilen Hata | 9 |
+
+## 5. Versiyon Kontrol
+
+Yapılan değişiklikler `dev/berayakar-hafta5-ui-test` branch'ine commit edilmiş ve uzak repoya (GitHub) push edilmiştir. `main` branch'ine merge işlemi pull request üzerinden gerçekleştirilecektir.
+
+- **Commit:** `Hafta 5: UI entegrasyon testleri tamamlandı ve hatalar düzeltildi`
+- **Branch:** `dev/berayakar-hafta5-ui-test`
+- **Eklenen Dosya:** `UI_Entegrasyon_Test_Raporu.md`
+
+## 6. Sonuç
+
+Web arayüzünün tüm bileşenleri birbiriyle ve dış kütüphaneler (Chart.js) ile uyumlu çalışmaktadır. Tespit edilen tüm hatalar giderilmiş, kullanılabilirlik (UX) ve erişilebilirlik (a11y) seviyeleri yükseltilmiştir. Uygulama masaüstü ve mobil cihazlarda tutarlı şekilde çalışır hale gelmiştir.
 
 
