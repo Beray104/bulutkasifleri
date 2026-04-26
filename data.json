@@ -1,0 +1,10 @@
+{
+  "post_id": "ID_123456",
+  "user": "@hasankara",
+  "text": "Bu proje harika ilerliyor!",
+  "analysis_results": {
+    "sentiment": "Positive",
+    "confidence_score": 0.94,
+    "language": "tr"
+  }
+}
