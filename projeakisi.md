@@ -836,4 +836,146 @@ Yapılan değişiklikler `dev/berayakar-hafta5-ui-test` branch'ine commit edilmi
 
 Web arayüzünün tüm bileşenleri birbiriyle ve dış kütüphaneler (Chart.js) ile uyumlu çalışmaktadır. Tespit edilen tüm hatalar giderilmiş, kullanılabilirlik (UX) ve erişilebilirlik (a11y) seviyeleri yükseltilmiştir. Uygulama masaüstü ve mobil cihazlarda tutarlı şekilde çalışır hale gelmiştir.
 
+# 🚀 API ENTEGRASYONU VE TEST RAPORU
+
+**Proje:** Dağıtık Sosyal Medya Analiz Platformu  
+**Hafta:** Hafta 2 
+**Tarih:** 26 Nisan 2026  
+**Hazırlayan:** Hasan Kara
+
+---
+
+## 📋 Görev Bilgileri
+
+| Başlık | Detay |
+| :--- | :--- |
+| **Görev** | API Entegrasyonu ve Test Senaryoları Doğrulaması |
+| **Hazırlayan** | Hasan Kara |
+| **Tarih** | 26 Nisan 2026 |
+| **Referans Tasarım** | Fatih Mehmet Albayrak (API Mimarisi ve JSON Şeması) |
+
+---
+
+## 1. Giriş ve Amaç
+
+[cite_start]Bu rapor, Fatih Mehmet Albayrak tarafından tasarlanan RESTful API mimarisinin ve JSON veri şemasının, platformun Ön Yüzüne (Frontend) başarıyla entegre edildiğini kanıtlamak amacıyla hazırlanmıştır[cite: 41]. [cite_start]Gerçek Backend sunucusunun aktif olmadığı durumlar göz önüne alınarak **Mock (Simülasyon) API** yaklaşımı kullanılmış ve sistemin veri çekme ile hata yönetimi süreçleri test edilmiştir[cite: 42].
+
+---
+
+## 2. Test Senaryoları ve Kanıtlar
+
+### 🧪 Senaryo 1: Hata Yönetimi (Error Handling) Testi
+* [cite_start]**Amaç:** Sistem Backend sunucusuna ulaşamadığında uygulamanın çökmeden kullanıcıya kontrollü bir şekilde uyarı verip veremediğinin doğrulanması[cite: 45].
+* [cite_start]**Sonuç:** **BAŞARILI (PASSED)**[cite: 46].
+* [cite_start]**Gözlem:** Sistem ilgili hatayı yakalamış ve arayüze şu uyarıyı başarıyla yansıtmıştır[cite: 46]:
+  > [cite_start]*"SİSTEM UYARISI: Gerçek API sunucusuna şu an ulaşılamıyor. Simülasyon Moduna Geçiliyor..."* [cite: 48, 49]
+
+### 🧪 Senaryo 2: JSON Veri Okuma ve İşleme Testi
+* [cite_start]**Amaç:** Tasarlanan JSON formatındaki verinin (Mektup Formatı) arayüz tarafından doğru bir şekilde parçalanıp (parse edilip) kullanıcıya sunulmasının test edilmesi[cite: 52].
+* [cite_start]**Sonuç:** **BAŞARILI (PASSED)**[cite: 53].
+* [cite_start]**Gözlem:** Sistem, mock veriyi başarılı bir şekilde okumuş; kullanıcı adını (@analizci), duygu durumunu (Positive) ve güven skorunu (%94) ekrana eksiksiz yansıtmıştır[cite: 53, 54, 57, 58, 59].
+
+---
+
+## 3. Sonuç Değerlendirmesi
+
+[cite_start]**DOĞRULANDI:** Web arayüzünün (Frontend), planlanan API uç noktalarına doğru veri yapısıyla istek atabildiği, hatalı durumlarda çökmediği (Error Handling) ve beklenen JSON veri formatını arayüzde kusursuz bir şekilde görselleştirebildiği kanıtlanmıştır[cite: 62, 63]. 
+
+[cite_start]**API Entegrasyonu görevi başarıyla tamamlanmıştır.** [cite: 64]
+
+---
+**Hazırlayan:** Hasan Kara | **Tarih:** 26 Nisan 2026 | **Hafta 5 Teslimi**
+
+# 📊 UI PERFORMANS TEST RAPORU
+
+[cite_start]**Proje:** Sosyal Medya Analiz Platformu [cite: 35]  
+[cite_start]**Hafta:** Hafta 4 [cite: 36, 38]  
+[cite_start]**Tarih:** 25 Nisan 2026 [cite: 36, 38]  
+[cite_start]**Hazırlayan:** Hasan Kara [cite: 36, 38, 68]
+
+---
+
+## [cite_start]1. Genel Bilgiler [cite: 37]
+
+| Başlık | Detay |
+| :--- | :--- |
+| **Proje Adı** | [cite_start]Sosyal Medya Analiz Platformu [cite: 38] |
+| **Test Eden** | [cite_start]Hasan Kara [cite: 38] |
+| **Test Tarihi** | [cite_start]25 Nisan 2026 [cite: 38] |
+| **Hafta** | [cite_start]Hafta 4 [cite: 38] |
+| **Test Ortamı** | [cite_start]Chrome 147 + Lighthouse + Live Server (localhost:5500) [cite: 38] |
+| **Referans Tasarım** | [cite_start]Muhammet Eren Mente - UI/UX Wireframe (Hafta 3) [cite: 38] |
+
+---
+
+## [cite_start]2. Test Edilen Bileşenler [cite: 39]
+
+[cite_start]Hafta 3'te Muhammet Eren Mente tarafından hazırlanan wireframe tasarımı esas alınarak aşağıdaki bileşenler geliştirilmiş ve test edilmiştir: [cite: 40]
+
+* [cite_start]**Arama Kutusu:** Real-time anahtar kelime girişi. [cite: 41]
+* [cite_start]**Pie Chart:** Duygu Analizi Dağılımı (Pozitif / Negatif / Nötr). [cite: 42]
+* [cite_start]**Line Chart:** Aktif Veri Akışı (Trend Takibi). [cite: 42]
+
+---
+
+## [cite_start]3. Lighthouse Performans Test Sonuçları [cite: 43]
+
+| Kategori | Skor | Durum |
+| :--- | :--- | :--- |
+| **Performance** | **100/100** | [cite_start]**Mükemmel** [cite: 44] |
+| **Accessibility** | 86/100 | [cite_start]İyileştirme Gerekli [cite: 44] |
+| **Best Practices** | 100/100 | [cite_start]Mükemmel [cite: 44] |
+| **SEO** | 90/100 | [cite_start]İyi [cite: 44] |
+
+---
+
+## [cite_start]4. Temel Performans Metrikleri [cite: 45]
+
+| Metrik | Değer | Değerlendirme |
+| :--- | :--- | :--- |
+| **First Contentful Paint (FCP)** | 0.5 s | [cite_start]Hızlı [cite: 46] |
+| **Largest Contentful Paint (LCP)** | 0.5 s | [cite_start]Hızlı [cite: 46] |
+| **Total Blocking Time (TBT)** | 0 ms | [cite_start]Mükemmel [cite: 46] |
+| **Cumulative Layout Shift (CLS)** | 0 | [cite_start]Mükemmel [cite: 46] |
+| **Speed Index** | 0.5 s | [cite_start]Hızlı [cite: 46] |
+| **Arama Tepki Süresi (Simülasyon)** | **~511 ms** | [cite_start]**Darboğaz Tespit Edildi** [cite: 46] |
+
+---
+
+## [cite_start]5. Tespit Edilen Darboğazlar [cite: 47]
+
+### [cite_start]5.1 Render-Blocking Requests (Kritik) [cite: 48]
+[cite_start]Chart.js kütüphanesi CDN üzerinden yüklenmektedir. [cite: 49] [cite_start]Bu durum sayfa ilk açılışında 350 ms'ye kadar gecikmeye yol açmakta, tarayıcı sayfayı render etmeden önce bu kaynağı beklemektedir. [cite: 49]
+
+### [cite_start]5.2 Yüksek Arama Tepki Süresi [cite: 50]
+[cite_start]Performans testi simülasyonunda ölçülen tepki süresi ortalama 511 ms olarak gerçekleşmiştir. [cite: 51] [cite_start]Bu değer, gerçek zamanlı arama işlemleri için kabul edilebilir sınırın (200 ms) üzerindedir. [cite: 52]
+
+### [cite_start]5.3 Kullanılmayan JavaScript [cite: 53]
+[cite_start]Lighthouse analizi, 29 KiB boyutunda kullanılmayan JavaScript kodu tespit etmiştir. [cite: 54] [cite_start]Chart.js'nin tüm modüllerini yüklemesi bu duruma yol açmaktadır. [cite: 54]
+
+### [cite_start]5.4 Cache Optimizasyonu Eksikliği [cite: 55]
+[cite_start]Statik kaynaklar için cache süresi tanımlanmamıştır. [cite: 56] [cite_start]Bu durum tekrar eden ziyaretlerde gereksiz ağ isteklerine neden olmaktadır (tahmini 7 KiB tasarruf mümkün). [cite: 56]
+
+---
+
+## [cite_start]6. İyileştirme Önerileri [cite: 57]
+
+1. [cite_start]**Modüler Yükleme:** Chart.js CDN yerine lokal bundle kullanılmalı, yalnızca kullanılan modüller import edilmelidir. [cite: 58]
+2. [cite_start]**Debounce Uygulaması:** Arama işlevine debounce uygulanmalı, kullanıcı yazmayı durdurana kadar sorgu tetiklenmemelidir (önerilen: 300 ms). [cite: 59]
+3. [cite_start]**Önbellek Yönetimi:** Statik kaynaklar için Cache-Control başlığı eklenerek tarayıcı önbelleğinden yararlanılmalıdır. [cite: 60]
+4. [cite_start]**Erişilebilirlik:** Accessibility skoru 86'dan 100'e çıkarılmalı; form alanlarına label eklenmeli, renk kontrastları gözden geçirilmelidir. [cite: 61]
+
+---
+
+## [cite_start]7. Sonuç [cite: 62]
+
+[cite_start]Sosyal Medya Analiz Platformu UI bileşenlerinin performans testi başarıyla tamamlanmıştır. [cite: 63] [cite_start]Lighthouse testi sonucunda Performance skoru **100/100** olarak ölçülmüş, sayfanın teknik performansı mükemmel düzey olarak değerlendirilmiştir. [cite: 64]
+
+[cite_start]Bununla birlikte; render-blocking istekler, 511 ms'lik arama tepki süresi ve kullanılmayan JavaScript gibi darboğazlar tespit edilmiştir. [cite: 65] [cite_start]Bu sorunların giderilmesiyle platformun gerçek kullanım senaryolarında çok daha verimli çalışacağı öngörülmektedir. [cite: 66]
+
+[cite_start]Muhammet Eren Mente'nin Hafta 3'te hazırladığı minimalist wireframe tasarımı, performans açısından doğrulanmış ve uygulanabilir olduğu test ile kanıtlanmıştır. 
+
+---
+**Hazırlayan:** Hasan Kara | **Tarih:** 25 Nisan 2026 | [cite_start]**Hafta 4 Teslimi** [cite: 68, 69]
+
 
