@@ -978,7 +978,7 @@ Web arayüzünün tüm bileşenleri birbiriyle ve dış kütüphaneler (Chart.js
 ---
 **Hazırlayan:** Hasan Kara | **Tarih:** 25 Nisan 2026 | [cite_start]**Hafta 4 Teslimi** [cite: 68, 69]
 
- Hafta 1: Veritabanı Optimizasyonu ve Performans Raporu | AMİNE CEREN YİĞİT
+ **Hafta 1: Veritabanı Optimizasyonu ve Performans Raporu | AMİNE CEREN YİĞİT**
 Bu rapor, "Bulut Kaşifleri" platformunun büyük veri yükü altında ölçeklenebilirliğini artırmak amacıyla gerçekleştirilen veritabanı iyileştirmelerini ve bu iyileştirmelerin sonuçlarını kapsamaktadır.  
 
 1. Gerçekleştirilen Optimizasyonlar
@@ -1023,7 +1023,51 @@ ES Kümeleme Performansı: keyword tipi kullanımı sayesinde trend analizleri v
 Darboğazlar: Testler sırasında saniyede 1200 mesajın üzerine çıkıldığında Kafka partition sayısının artırılması gerektiği gözlemlenmiştir.  
 
 5. Sonuç
-Hafta 1 optimizasyon hedefleri başarıyla tamamlanmıştır. Sistem, hedeflenen saniyede 1000+ mesaj işleme kapasitesine ve 200ms altı API yanıt süresine ulaşmıştır.  
+Hafta 1 optimizasyon hedefleri başarıyla tamamlanmıştır. Sistem, hedeflenen saniyede 1000+ mesaj işleme kapasitesine ve 200ms altı API yanıt süresine ulaşmıştır.
+
+ **Hafta 3: API Entegrasyon Test Senaryoları ve Sonuç Raporu | AMİNE CEREN YİĞİT**
+Bu çalışma, "Bulut Kaşifleri" platformunun mikroservis mimarisi arasındaki veri iletişiminin ve güvenlik katmanlarının doğrulanması amacıyla gerçekleştirilmiştir.
+
+1. Test Senaryoları ve Kapsamı
+Testler, tasarlanan RESTful API uç noktalarının (endpoints) gerçek dünya senaryolarındaki davranışlarını ölçmek üzere 3 ana kategoride toplanmıştır.
+
+1.1. Kimlik Doğrulama ve Güvenlik (Auth & JWT)
+
+Senaryo 1: Geçerli kullanıcı bilgileriyle /api/v1/auth/login üzerinden token alma.
+
+Senaryo 2: Geçersiz veya süresi dolmuş JWT ile korumalı uç noktalara (Örn: /tasks) erişim denemesi.
+
+Beklenen Sonuç: Geçerli girişte 200 OK ve JWT dönmesi; yetkisiz erişimde 401 Unauthorized hatası vermesi.
+
+1.2. Veri Sunumu ve Elasticsearch Entegrasyonu
+
+Senaryo 3: /api/v1/sentiment/summary isteğiyle Elasticsearch'teki analiz özetlerinin çekilmesi.
+
+Senaryo 4: /api/v1/posts/latest ile Spark tarafından işlenmiş en güncel verilerin listelenmesi.
+
+Beklenen Sonuç: JSON şemasına uygun, güncel ve filtrelenmiş verinin milisaniyeler içinde dönmesi.
+
+1.3. Görev Yönetimi ve Kafka Tetikleme
+
+Senaryo 5: /api/v1/collector/task üzerinden yeni bir anahtar kelime takibi başlatma.
+
+Beklenen Sonuç: İsteğin API tarafından kabul edilip ilgili Kafka topic'ine başarılı bir mesaj basılması.
+
+2. Test Sonuçları Tablosu
+Test ID	Senaryo Adı	Endpoint	Durum	Yanıt Süresi	Notlar
+TC01	JWT Token Üretimi	/auth/login	🟢 PASSED	45ms	Token başarıyla üretildi.
+TC02	Yetkisiz Erişim Engeli	/tasks	🟢 PASSED	12ms	401 hatası doğrulandı.
+TC03	Duygu Özeti Çekme	/sentiment/summary	🟢 PASSED	110ms	ES verileri başarıyla geldi.
+TC04	Canlı Veri Listeleme	/posts/latest	🟢 PASSED	95ms	JSON formatı şemaya uygun.
+TC05	Kafka Görev Tetikleme	/collector/task	🟡 WARNING	320ms	Mesaj iletildi ancak gecikme yüksek.
+3. Teknik Değerlendirme ve Bulgular
+Veri Bütünlüğü: Elasticsearch üzerinden dönen analiz sonuçlarının, Spark tarafından zenginleştirilen JSON şemasıyla tam uyumlu olduğu teyit edilmiştir.
+
+Güvenlik: Kimlik doğrulama katmanı, JWT taşımayan tüm istekleri başarıyla reddetmektedir.
+
+Performans: Ortalama API yanıt süresi 150ms altında kalarak hedeflenen performans kriterlerini karşılamıştır.
+
+Tespit Edilen Sorun: Kafka'ya mesaj gönderimi sırasında (TC05) ağ gecikmesi nedeniyle beklenenden yüksek bir süre ölçülmüştür; Producer konfigürasyonunun optimize edilmesi önerilir.
 
 
 
