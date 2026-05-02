@@ -978,4 +978,215 @@ Web arayüzünün tüm bileşenleri birbiriyle ve dış kütüphaneler (Chart.js
 ---
 **Hazırlayan:** Hasan Kara | **Tarih:** 25 Nisan 2026 | [cite_start]**Hafta 4 Teslimi** [cite: 68, 69]
 
+**Spring Boot Tarafında Pagination ve Optimize Sorgular (JPA) || AMİNE CEREN YİĞİT**
+1) PostRepository.java
+src/main/java/.../repository/PostRepository.java
+package com.bulutkasifleri.api.repository;
+
+import com.bulutkasifleri.api.entity.Post;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDateTime;
+
+public interface PostRepository extends JpaRepository<Post, Long> {
+
+    Page<Post> findByPlatformIgnoreCase(String platform, Pageable pageable);
+
+    Page<Post> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);
+
+    Page<Post> findByPlatformIgnoreCaseAndCreatedAtBetween(
+            String platform,
+            LocalDateTime start,
+            LocalDateTime end,
+            Pageable pageable
+    );
+
+    Page<Post> findByContentContainingIgnoreCase(String keyword, Pageable pageable);
+}
+2) PostService.java
+src/main/java/.../service/PostService.java
+package com.bulutkasifleri.api.service;
+
+import com.bulutkasifleri.api.entity.Post;
+import com.bulutkasifleri.api.repository.PostRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+public class PostService {
+
+    private final PostRepository postRepository;
+
+    public PostService(PostRepository postRepository) {
+        this.postRepository = postRepository;
+    }
+
+    public Page<Post> getAllPosts(Pageable pageable) {
+        return postRepository.findAll(pageable);
+    }
+
+    public Page<Post> getPostsByPlatform(String platform, Pageable pageable) {
+        return postRepository.findByPlatformIgnoreCase(platform, pageable);
+    }
+
+    public Page<Post> searchByKeyword(String keyword, Pageable pageable) {
+        return postRepository.findByContentContainingIgnoreCase(keyword, pageable);
+    }
+
+    public Page<Post> getPostsBetweenDates(LocalDateTime start, LocalDateTime end, Pageable pageable) {
+        return postRepository.findByCreatedAtBetween(start, end, pageable);
+    }
+
+    public Page<Post> getPostsByPlatformAndDateRange(
+            String platform,
+            LocalDateTime start,
+            LocalDateTime end,
+            Pageable pageable
+    ) {
+        return postRepository.findByPlatformIgnoreCaseAndCreatedAtBetween(platform, start, end, pageable);
+    }
+}
+3) PostController.java
+src/main/java/.../controller/PostController.java
+package com.bulutkasifleri.api.controller;
+
+import com.bulutkasifleri.api.entity.Post;
+import com.bulutkasifleri.api.service.PostService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+
+@RestController
+@RequestMapping("/api/posts")
+public class PostController {
+
+    private final PostService postService;
+
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
+
+    // GET /api/posts?page=0&size=50
+    @GetMapping
+    public Page<Post> getAllPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        return postService.getAllPosts(
+                PageRequest.of(page, size, Sort.by("createdAt").descending())
+        );
+    }
+
+    // GET /api/posts/platform/instagram?page=0&size=50
+    @GetMapping("/platform/{platform}")
+    public Page<Post> getPostsByPlatform(
+            @PathVariable String platform,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        return postService.getPostsByPlatform(
+                platform,
+                PageRequest.of(page, size, Sort.by("createdAt").descending())
+        );
+    }
+
+    // GET /api/posts/search?keyword=test&page=0&size=50
+    @GetMapping("/search")
+    public Page<Post> searchPosts(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        return postService.searchByKeyword(
+                keyword,
+                PageRequest.of(page, size, Sort.by("createdAt").descending())
+        );
+    }
+
+    // GET /api/posts/date?start=2026-01-01T00:00:00&end=2026-01-31T23:59:59&page=0&size=50
+    @GetMapping("/date")
+    public Page<Post> getPostsBetweenDates(
+            @RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        return postService.getPostsBetweenDates(
+                start,
+                end,
+                PageRequest.of(page, size, Sort.by("createdAt").descending())
+        );
+    }
+
+    // GET /api/posts/filter?platform=twitter&start=2026-01-01T00:00:00&end=2026-01-31T23:59:59&page=0&size=50
+    @GetMapping("/filter")
+    public Page<Post> getPostsByPlatformAndDateRange(
+            @RequestParam String platform,
+            @RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        return postService.getPostsByPlatformAndDateRange(
+                platform,
+                start,
+                end,
+                PageRequest.of(page, size, Sort.by("createdAt").descending())
+        );
+    }
+}
+4) Performans için Ek Notlar (Önemli)
+4.1 Page size sınırı koy
+Çok büyük size değerleri performansı öldürür. Öneri: max 200.
+Controller içine eklenebilir:
+if (size > 200) size = 200;
+5) PostgreSQL Full Text Search için Özel Query (Opsiyonel ama güçlü)
+Eğer ILIKE yerine gerçek Full Text Search yapmak istersen:
+PostRepository.java içine ekle:
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+@Query(value = """
+        SELECT * FROM posts
+        WHERE to_tsvector('simple', content) @@ to_tsquery(:keyword)
+        """,
+        nativeQuery = true)
+Page<Post> fullTextSearch(@Param("keyword") String keyword, Pageable pageable);
+Service içine ekle:
+public Page<Post> fullTextSearch(String keyword, Pageable pageable) {
+    return postRepository.fullTextSearch(keyword, pageable);
+}
+Controller içine endpoint ekle:
+@GetMapping("/fts")
+public Page<Post> fullTextSearch(
+        @RequestParam String keyword,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "50") int size
+) {
+    return postService.fullTextSearch(
+            keyword,
+            PageRequest.of(page, size, Sort.by("createdAt").descending())
+    );
+}
+6) API Kullanım Örnekleri
+Tüm postlar (50 tane):
+http://localhost:8080/api/posts?page=0&size=50
+Platform filtre:
+http://localhost:8080/api/posts/platform/instagram?page=0&size=50
+Keyword search:
+http://localhost:8080/api/posts/search?keyword=bahar&page=0&size=20
+Tarih aralığı:
+http://localhost:8080/api/posts/date?start=2026-01-01T00:00:00&end=2026-01-31T23:59:59&page=0&size=20
+Platform + tarih:
+http://localhost:8080/api/posts/filter?platform=twitter&start=2026-01-01T00:00:00&end=2026-01-31T23:59:59&page=0&size=20
+
+
 
