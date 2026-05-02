@@ -1,0 +1,56 @@
+package com.eren.social_media_analysis.controller;
+
+import com.eren.social_media_analysis.dto.SentimentSummaryResponse;
+import com.eren.social_media_analysis.dto.SocialMediaMessage;
+import com.eren.social_media_analysis.dto.SocialMediaPostResponse;
+import com.eren.social_media_analysis.dto.TrendResponse;
+import com.eren.social_media_analysis.kafka.KafkaProducer;
+import com.eren.social_media_analysis.service.SocialMediaService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1")
+public class SocialMediaController {
+
+	private final SocialMediaService socialMediaService;
+	private final KafkaProducer kafkaProducer;
+
+	public SocialMediaController(SocialMediaService socialMediaService, KafkaProducer kafkaProducer) {
+		this.socialMediaService = socialMediaService;
+		this.kafkaProducer = kafkaProducer;
+	}
+
+	// Frontend trend verilerini bu endpoint üzerinden çeker.
+	@GetMapping("/trends")
+	public List<TrendResponse> getTrends() {
+		return socialMediaService.getTopTrends();
+	}
+
+	// Frontend duygu analizi dağılımını bu endpoint üzerinden çeker.
+	@GetMapping("/sentiments")
+	public List<SentimentSummaryResponse> getSentiments() {
+		return socialMediaService.getSentimentSummary();
+	}
+
+	// Veri toplama katmanından gelen ham içeriği Kafka kuyruğuna aktarır.
+	@PostMapping("/social-media-posts")
+	@ResponseStatus(HttpStatus.ACCEPTED)
+	public void publishPost(@Valid @RequestBody SocialMediaMessage message) {
+		kafkaProducer.publish(message);
+	}
+
+	// Son kayıtları DTO olarak sunar; entity/document nesneleri dışarı açılmaz.
+	@GetMapping("/social-media-posts")
+	public List<SocialMediaPostResponse> getRecentPosts() {
+		return socialMediaService.getRecentPosts();
+	}
+}
