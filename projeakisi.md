@@ -1110,3 +1110,126 @@ CREATE INDEX idx_trends_created_at ON trends(created_at);
 CREATE INDEX idx_posts_content_fts
 ON posts
 USING GIN (to_tsvector('simple', content));
+
+
+**Veritabanı Sorgu Optimizasyonu ve Performans Test Raporu || AMİNE CEREN YİĞİT**
+1. Amaç
+Bu çalışmanın amacı Bulut Kaşifleri projesinde veritabanı sorgularını optimize ederek uygulamanın yanıt sürelerini iyileştirmek ve performans testleri ile yapılan iyileştirmelerin etkisini ölçmektir.
+Optimizasyon sürecinde:
+indeksleme stratejileri uygulanmış,
+sık kullanılan sorgular analiz edilmiş,
+metin aramalarında full scan maliyeti azaltılmış,
+sorgu süreleri test edilmiştir.
+2. Test Ortamı
+Veritabanı: PostgreSQL 16
+Veri Seti: örnek test verisi (posts, users, hashtags)
+Test Aracı: PostgreSQL EXPLAIN ANALYZE
+Ölçüm Metriği: execution time (ms)
+Sunucu: Local environment
+3. Performans Sorunu Olan Kritik Sorgular
+Sistemde en sık çalışması beklenen sorgular:
+Platforma göre post listeleme
+Tarih aralığında post sorgulama
+Platform + tarih aralığı sorgulama
+İçerik bazlı keyword arama
+Trend hashtag sorgulama (join + group by)
+4. Uygulanan Optimizasyonlar
+4.1 İndeksleme (Indexing)
+Aşağıdaki indeksler uygulanmıştır:
+CREATE INDEX idx_posts_platform ON posts(platform);
+CREATE INDEX idx_posts_created_at ON posts(created_at);
+CREATE INDEX idx_posts_platform_created_at ON posts(platform, created_at);
+
+CREATE INDEX idx_post_hashtag_post_id ON post_hashtag(post_id);
+CREATE INDEX idx_post_hashtag_hashtag_id ON post_hashtag(hashtag_id);
+
+CREATE INDEX idx_sentiment_post_id ON sentiment_analysis(post_id);
+
+CREATE INDEX idx_trends_platform ON trends(platform);
+CREATE INDEX idx_trends_created_at ON trends(created_at);
+4.2 Full Text Search İndeksi
+ILIKE sorguları büyük tabloda performans kaybına neden olduğundan PostgreSQL Full Text Search tercih edilmiştir.
+CREATE INDEX idx_posts_content_fts
+ON posts
+USING GIN (to_tsvector('simple', content));
+4.3 Pagination Stratejisi
+API tarafında büyük veri çekilmesini engellemek için pagination zorunlu hale getirilmiştir.
+Örnek:
+Varsayılan size = 50
+Maksimum size = 200
+5. Test Senaryoları ve Sonuçlar
+Aşağıdaki sorgular indeks öncesi ve sonrası test edilmiştir.
+5.1 Platforma Göre Post Çekme
+Sorgu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE platform = 'twitter'
+ORDER BY created_at DESC
+LIMIT 50;
+Beklenen iyileştirme:
+Sequential scan yerine index scan
+Sonuç:
+İndeks sonrası sorgu süresi düşmüştür.
+idx_posts_platform_created_at indeksi etkin şekilde kullanılmıştır.
+5.2 Tarih Aralığı Sorgusu
+Sorgu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE created_at BETWEEN '2026-01-01' AND '2026-01-31'
+ORDER BY created_at DESC
+LIMIT 50;
+Sonuç:
+idx_posts_created_at indeksi ile tarih aralığı sorguları hızlanmıştır.
+Disk taraması azalmıştır.
+5.3 Platform + Tarih Aralığı Birleşik Sorgu
+Sorgu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE platform = 'instagram'
+AND created_at >= NOW() - INTERVAL '7 days'
+ORDER BY created_at DESC
+LIMIT 50;
+Sonuç:
+Composite index (platform, created_at) sayesinde sorgu maliyeti ciddi şekilde düşmüştür.
+Bu indeks sistem için kritik kabul edilmiştir.
+5.4 Keyword Arama Performansı
+ILIKE sorgusu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE content ILIKE '%yangin%'
+LIMIT 50;
+Sonuç:
+Bu sorgu indeks kullanamadığı için büyük tabloda performans problemi oluşturmaktadır.
+Full Text Search sorgusu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE to_tsvector('simple', content) @@ to_tsquery('yangin')
+LIMIT 50;
+Sonuç:
+GIN index sayesinde arama süresi önemli ölçüde düşmüştür.
+Sistem için keyword aramalarda FTS kullanımı zorunlu hale getirilmelidir.
+5.5 Trend Hashtag Sorgusu
+Sorgu:
+EXPLAIN ANALYZE
+SELECT h.tag_name, COUNT(*) AS count
+FROM post_hashtag ph
+JOIN hashtags h ON ph.hashtag_id = h.id
+GROUP BY h.tag_name
+ORDER BY count DESC
+LIMIT 10;
+Sonuç:
+Join performansı post_hashtag indeksleri sayesinde iyileşmiştir.
+Hashtag analizinde indeksleme zorunludur.
+6. Genel Değerlendirme
+Bu çalışma sonucunda:
+En kritik sorgular belirlenmiş ve optimize edilmiştir.
+Platform + tarih sorguları için composite index eklenmiştir.
+Keyword arama için Full Text Search kullanımı planlanmıştır.
+Join işlemleri için post_hashtag indeksleri eklenmiştir.
+API tarafında pagination zorunlu hale getirilerek gereksiz yük azaltılmıştır.
+Bu optimizasyonlar sistemin ölçeklenebilirliğini artırmakta ve ilerleyen aşamalarda Kafka/Spark gibi bileşenlerle çalışacak pipeline’ın DB tarafında darboğaz oluşturmasını engellemektedir.
