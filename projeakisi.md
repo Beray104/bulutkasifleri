@@ -978,215 +978,258 @@ Web arayüzünün tüm bileşenleri birbiriyle ve dış kütüphaneler (Chart.js
 ---
 **Hazırlayan:** Hasan Kara | **Tarih:** 25 Nisan 2026 | [cite_start]**Hafta 4 Teslimi** [cite: 68, 69]
 
-**Spring Boot Tarafında Pagination ve Optimize Sorgular (JPA) || AMİNE CEREN YİĞİT**
-1) PostRepository.java
-src/main/java/.../repository/PostRepository.java
-package com.bulutkasifleri.api.repository;
+**Veritabanı Sorgu Optimizasyonu ve İndeksleme Stratejisi || AMİNE CEREN YİĞİT**
+Amaç
+Bulut Kaşifleri projesinde sosyal medya verileri yüksek hacimli olacağı için sorguların gecikmesi kaçınılmazdır. Bu nedenle sık kullanılan sorgular optimize edilmeli ve uygun indeksleme stratejileri uygulanmalıdır. Bu çalışma, sistemin yanıt süresini azaltmayı ve ölçeklenebilirliği artırmayı hedefler.
+1. Performans Problemlerinin Kaynağı
+Sistemde performans sorunları genellikle şu sebeplerle oluşur:
+posts tablosunun sürekli büyümesi
+content alanında metin araması yapılması
+created_at üzerinden zaman bazlı sorguların yoğun kullanılması
+platform filtrelemesi ile yapılan sorgular
+post_hashtag tablosu üzerinden yapılan join işlemleri
+2. Sık Kullanılan Sorgular
+2.1 Platforma göre post çekme
+SELECT * 
+FROM posts 
+WHERE platform = 'instagram';
+2.2 Tarih aralığında post çekme
+SELECT *
+FROM posts
+WHERE created_at BETWEEN '2026-01-01' AND '2026-01-31';
+2.3 Platform + tarih aralığı birlikte
+SELECT *
+FROM posts
+WHERE platform = 'twitter'
+AND created_at >= NOW() - INTERVAL '7 days';
+2.4 İçerikte anahtar kelime arama
+SELECT *
+FROM posts
+WHERE content ILIKE '%yangin%';
+2.5 Trend hashtag bulma
+SELECT h.tag_name, COUNT(*) AS count
+FROM post_hashtag ph
+JOIN hashtags h ON ph.hashtag_id = h.id
+GROUP BY h.tag_name
+ORDER BY count DESC
+LIMIT 10;
+3. Önerilen İndeksleme Stratejisi
+Bu proje için indeksleme, en sık filtrelenen kolonlara göre yapılmalıdır.
+3.1 Posts tablosu indeksleri
+Platform indeks
+Platform bazlı sorguların hızlanması için:
+CREATE INDEX idx_posts_platform ON posts(platform);
+Tarih indeks
+Zaman bazlı sorguların hızlanması için:
+CREATE INDEX idx_posts_created_at ON posts(created_at);
+Platform + tarih birleşik indeks
+Gerçek kullanım senaryosunda en sık sorgu şekli:
+platform filtre + zaman aralığıdır.
+CREATE INDEX idx_posts_platform_created_at ON posts(platform, created_at);
+3.2 Hashtag ilişkileri için indeksler
+post_hashtag tablosu indeksleri
+Join işlemleri hızlandırmak için:
+CREATE INDEX idx_post_hashtag_post_id ON post_hashtag(post_id);
+CREATE INDEX idx_post_hashtag_hashtag_id ON post_hashtag(hashtag_id);
+3.3 Sentiment Analysis tablosu indeksleri
+Post ID üzerinden erişim için:
+CREATE INDEX idx_sentiment_post_id ON sentiment_analysis(post_id);
+3.4 Trends tablosu indeksleri
+Platform bazlı trend sorguları için:
+CREATE INDEX idx_trends_platform ON trends(platform);
+Zaman bazlı trend sorguları için:
+CREATE INDEX idx_trends_created_at ON trends(created_at);
+4. Metin Araması Optimizasyonu (Full Text Search)
+ILIKE '%kelime%' kullanımı büyük veri üzerinde çok yavaştır çünkü indeks kullanamaz (full scan yapar).
+Bu yüzden PostgreSQL için Full Text Search önerilir.
+4.1 GIN Index ile içerik indeksleme
+CREATE INDEX idx_posts_content_fts
+ON posts
+USING GIN (to_tsvector('simple', content));
+4.2 Full Text Search sorgusu
+SELECT *
+FROM posts
+WHERE to_tsvector('simple', content) @@ to_tsquery('yangin');
+Bu yöntem, metin aramasında ciddi performans artışı sağlar.
+5. Query Optimizasyon Önerileri
+5.1 Gereksiz SELECT * kullanımını azaltma
+Tüm kolonları çekmek yerine sadece gerekli kolonları almak önerilir.
+Örnek:
+SELECT id, content, created_at
+FROM posts
+WHERE platform = 'twitter';
+5.2 Pagination kullanımı zorunlu olmalı
+Büyük tabloda tek seferde binlerce kayıt çekmek yanıt süresini artırır.
+SELECT *
+FROM posts
+ORDER BY created_at DESC
+LIMIT 50 OFFSET 0;
+5.3 ORDER BY optimizasyonu
+ORDER BY created_at DESC sık kullanılıyorsa indeks şarttır.
+CREATE INDEX idx_posts_created_at_desc ON posts(created_at DESC);
+6. Veri Tutma (Retention) Politikası
+Posts tablosu sürekli büyüyeceği için eski ham veriler belirli süre sonra silinmelidir.
+Öneri:
+Ham veriler: 30 gün sakla
+Analiz sonuçları: uzun süre sakla
+Örnek silme sorgusu:
+DELETE FROM posts
+WHERE created_at < NOW() - INTERVAL '30 days';
+Bu işlem belirli aralıklarla otomatik çalıştırılmalıdır.
+7. Partitioning (Zaman Bazlı Bölme)
+Posts tablosu çok büyürse en iyi çözüm zaman bazlı partitioning uygulamaktır.
+Öneri:
+Aylık partition
+Haftalık partition
+Bu sayede sorgular sadece ilgili partition üzerinde çalışır.
+Örnek mantık:
+posts_2026_01
+posts_2026_02
+8. Sonuç
+Bu optimizasyon çalışması kapsamında:
+Sık kullanılan sorgular belirlenmiştir.
+Platform, zaman ve join kolonları için indeksleme önerilmiştir.
+Metin araması için full-text search (GIN index) uygulanmıştır.
+Pagination ve kolon seçimi ile sorgu yükü azaltılmıştır.
+Veri tutma politikası ve partitioning önerisi eklenmiştir.
+Bu iyileştirmeler, yüksek veri hacmi altında sistem yanıt sürelerini düşürerek gerçek zamanlı analiz platformunun performansını artıracaktır.
+Ek: Tüm İndeksleri Tek Dosyada Çalıştırma
+Bu komutlar tek seferde uygulanabilir:
+CREATE INDEX idx_posts_platform ON posts(platform);
+CREATE INDEX idx_posts_created_at ON posts(created_at);
+CREATE INDEX idx_posts_platform_created_at ON posts(platform, created_at);
 
-import com.bulutkasifleri.api.entity.Post;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
+CREATE INDEX idx_post_hashtag_post_id ON post_hashtag(post_id);
+CREATE INDEX idx_post_hashtag_hashtag_id ON post_hashtag(hashtag_id);
 
-import java.time.LocalDateTime;
+CREATE INDEX idx_sentiment_post_id ON sentiment_analysis(post_id);
 
-public interface PostRepository extends JpaRepository<Post, Long> {
+CREATE INDEX idx_trends_platform ON trends(platform);
+CREATE INDEX idx_trends_created_at ON trends(created_at);
 
-    Page<Post> findByPlatformIgnoreCase(String platform, Pageable pageable);
-
-    Page<Post> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);
-
-    Page<Post> findByPlatformIgnoreCaseAndCreatedAtBetween(
-            String platform,
-            LocalDateTime start,
-            LocalDateTime end,
-            Pageable pageable
-    );
-
-    Page<Post> findByContentContainingIgnoreCase(String keyword, Pageable pageable);
-}
-2) PostService.java
-src/main/java/.../service/PostService.java
-package com.bulutkasifleri.api.service;
-
-import com.bulutkasifleri.api.entity.Post;
-import com.bulutkasifleri.api.repository.PostRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-
-@Service
-public class PostService {
-
-    private final PostRepository postRepository;
-
-    public PostService(PostRepository postRepository) {
-        this.postRepository = postRepository;
-    }
-
-    public Page<Post> getAllPosts(Pageable pageable) {
-        return postRepository.findAll(pageable);
-    }
-
-    public Page<Post> getPostsByPlatform(String platform, Pageable pageable) {
-        return postRepository.findByPlatformIgnoreCase(platform, pageable);
-    }
-
-    public Page<Post> searchByKeyword(String keyword, Pageable pageable) {
-        return postRepository.findByContentContainingIgnoreCase(keyword, pageable);
-    }
-
-    public Page<Post> getPostsBetweenDates(LocalDateTime start, LocalDateTime end, Pageable pageable) {
-        return postRepository.findByCreatedAtBetween(start, end, pageable);
-    }
-
-    public Page<Post> getPostsByPlatformAndDateRange(
-            String platform,
-            LocalDateTime start,
-            LocalDateTime end,
-            Pageable pageable
-    ) {
-        return postRepository.findByPlatformIgnoreCaseAndCreatedAtBetween(platform, start, end, pageable);
-    }
-}
-3) PostController.java
-src/main/java/.../controller/PostController.java
-package com.bulutkasifleri.api.controller;
-
-import com.bulutkasifleri.api.entity.Post;
-import com.bulutkasifleri.api.service.PostService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-
-@RestController
-@RequestMapping("/api/posts")
-public class PostController {
-
-    private final PostService postService;
-
-    public PostController(PostService postService) {
-        this.postService = postService;
-    }
-
-    // GET /api/posts?page=0&size=50
-    @GetMapping
-    public Page<Post> getAllPosts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
-    ) {
-        return postService.getAllPosts(
-                PageRequest.of(page, size, Sort.by("createdAt").descending())
-        );
-    }
-
-    // GET /api/posts/platform/instagram?page=0&size=50
-    @GetMapping("/platform/{platform}")
-    public Page<Post> getPostsByPlatform(
-            @PathVariable String platform,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
-    ) {
-        return postService.getPostsByPlatform(
-                platform,
-                PageRequest.of(page, size, Sort.by("createdAt").descending())
-        );
-    }
-
-    // GET /api/posts/search?keyword=test&page=0&size=50
-    @GetMapping("/search")
-    public Page<Post> searchPosts(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
-    ) {
-        return postService.searchByKeyword(
-                keyword,
-                PageRequest.of(page, size, Sort.by("createdAt").descending())
-        );
-    }
-
-    // GET /api/posts/date?start=2026-01-01T00:00:00&end=2026-01-31T23:59:59&page=0&size=50
-    @GetMapping("/date")
-    public Page<Post> getPostsBetweenDates(
-            @RequestParam LocalDateTime start,
-            @RequestParam LocalDateTime end,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
-    ) {
-        return postService.getPostsBetweenDates(
-                start,
-                end,
-                PageRequest.of(page, size, Sort.by("createdAt").descending())
-        );
-    }
-
-    // GET /api/posts/filter?platform=twitter&start=2026-01-01T00:00:00&end=2026-01-31T23:59:59&page=0&size=50
-    @GetMapping("/filter")
-    public Page<Post> getPostsByPlatformAndDateRange(
-            @RequestParam String platform,
-            @RequestParam LocalDateTime start,
-            @RequestParam LocalDateTime end,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
-    ) {
-        return postService.getPostsByPlatformAndDateRange(
-                platform,
-                start,
-                end,
-                PageRequest.of(page, size, Sort.by("createdAt").descending())
-        );
-    }
-}
-4) Performans için Ek Notlar (Önemli)
-4.1 Page size sınırı koy
-Çok büyük size değerleri performansı öldürür. Öneri: max 200.
-Controller içine eklenebilir:
-if (size > 200) size = 200;
-5) PostgreSQL Full Text Search için Özel Query (Opsiyonel ama güçlü)
-Eğer ILIKE yerine gerçek Full Text Search yapmak istersen:
-PostRepository.java içine ekle:
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
-@Query(value = """
-        SELECT * FROM posts
-        WHERE to_tsvector('simple', content) @@ to_tsquery(:keyword)
-        """,
-        nativeQuery = true)
-Page<Post> fullTextSearch(@Param("keyword") String keyword, Pageable pageable);
-Service içine ekle:
-public Page<Post> fullTextSearch(String keyword, Pageable pageable) {
-    return postRepository.fullTextSearch(keyword, pageable);
-}
-Controller içine endpoint ekle:
-@GetMapping("/fts")
-public Page<Post> fullTextSearch(
-        @RequestParam String keyword,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "50") int size
-) {
-    return postService.fullTextSearch(
-            keyword,
-            PageRequest.of(page, size, Sort.by("createdAt").descending())
-    );
-}
-6) API Kullanım Örnekleri
-Tüm postlar (50 tane):
-http://localhost:8080/api/posts?page=0&size=50
-Platform filtre:
-http://localhost:8080/api/posts/platform/instagram?page=0&size=50
-Keyword search:
-http://localhost:8080/api/posts/search?keyword=bahar&page=0&size=20
-Tarih aralığı:
-http://localhost:8080/api/posts/date?start=2026-01-01T00:00:00&end=2026-01-31T23:59:59&page=0&size=20
-Platform + tarih:
-http://localhost:8080/api/posts/filter?platform=twitter&start=2026-01-01T00:00:00&end=2026-01-31T23:59:59&page=0&size=20
+CREATE INDEX idx_posts_content_fts
+ON posts
+USING GIN (to_tsvector('simple', content));
 
 
+**Veritabanı Sorgu Optimizasyonu ve Performans Test Raporu || AMİNE CEREN YİĞİT**
+1. Amaç
+Bu çalışmanın amacı Bulut Kaşifleri projesinde veritabanı sorgularını optimize ederek uygulamanın yanıt sürelerini iyileştirmek ve performans testleri ile yapılan iyileştirmelerin etkisini ölçmektir.
+Optimizasyon sürecinde:
+indeksleme stratejileri uygulanmış,
+sık kullanılan sorgular analiz edilmiş,
+metin aramalarında full scan maliyeti azaltılmış,
+sorgu süreleri test edilmiştir.
+2. Test Ortamı
+Veritabanı: PostgreSQL 16
+Veri Seti: örnek test verisi (posts, users, hashtags)
+Test Aracı: PostgreSQL EXPLAIN ANALYZE
+Ölçüm Metriği: execution time (ms)
+Sunucu: Local environment
+3. Performans Sorunu Olan Kritik Sorgular
+Sistemde en sık çalışması beklenen sorgular:
+Platforma göre post listeleme
+Tarih aralığında post sorgulama
+Platform + tarih aralığı sorgulama
+İçerik bazlı keyword arama
+Trend hashtag sorgulama (join + group by)
+4. Uygulanan Optimizasyonlar
+4.1 İndeksleme (Indexing)
+Aşağıdaki indeksler uygulanmıştır:
+CREATE INDEX idx_posts_platform ON posts(platform);
+CREATE INDEX idx_posts_created_at ON posts(created_at);
+CREATE INDEX idx_posts_platform_created_at ON posts(platform, created_at);
 
+CREATE INDEX idx_post_hashtag_post_id ON post_hashtag(post_id);
+CREATE INDEX idx_post_hashtag_hashtag_id ON post_hashtag(hashtag_id);
+
+CREATE INDEX idx_sentiment_post_id ON sentiment_analysis(post_id);
+
+CREATE INDEX idx_trends_platform ON trends(platform);
+CREATE INDEX idx_trends_created_at ON trends(created_at);
+4.2 Full Text Search İndeksi
+ILIKE sorguları büyük tabloda performans kaybına neden olduğundan PostgreSQL Full Text Search tercih edilmiştir.
+CREATE INDEX idx_posts_content_fts
+ON posts
+USING GIN (to_tsvector('simple', content));
+4.3 Pagination Stratejisi
+API tarafında büyük veri çekilmesini engellemek için pagination zorunlu hale getirilmiştir.
+Örnek:
+Varsayılan size = 50
+Maksimum size = 200
+5. Test Senaryoları ve Sonuçlar
+Aşağıdaki sorgular indeks öncesi ve sonrası test edilmiştir.
+5.1 Platforma Göre Post Çekme
+Sorgu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE platform = 'twitter'
+ORDER BY created_at DESC
+LIMIT 50;
+Beklenen iyileştirme:
+Sequential scan yerine index scan
+Sonuç:
+İndeks sonrası sorgu süresi düşmüştür.
+idx_posts_platform_created_at indeksi etkin şekilde kullanılmıştır.
+5.2 Tarih Aralığı Sorgusu
+Sorgu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE created_at BETWEEN '2026-01-01' AND '2026-01-31'
+ORDER BY created_at DESC
+LIMIT 50;
+Sonuç:
+idx_posts_created_at indeksi ile tarih aralığı sorguları hızlanmıştır.
+Disk taraması azalmıştır.
+5.3 Platform + Tarih Aralığı Birleşik Sorgu
+Sorgu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE platform = 'instagram'
+AND created_at >= NOW() - INTERVAL '7 days'
+ORDER BY created_at DESC
+LIMIT 50;
+Sonuç:
+Composite index (platform, created_at) sayesinde sorgu maliyeti ciddi şekilde düşmüştür.
+Bu indeks sistem için kritik kabul edilmiştir.
+5.4 Keyword Arama Performansı
+ILIKE sorgusu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE content ILIKE '%yangin%'
+LIMIT 50;
+Sonuç:
+Bu sorgu indeks kullanamadığı için büyük tabloda performans problemi oluşturmaktadır.
+Full Text Search sorgusu:
+EXPLAIN ANALYZE
+SELECT *
+FROM posts
+WHERE to_tsvector('simple', content) @@ to_tsquery('yangin')
+LIMIT 50;
+Sonuç:
+GIN index sayesinde arama süresi önemli ölçüde düşmüştür.
+Sistem için keyword aramalarda FTS kullanımı zorunlu hale getirilmelidir.
+5.5 Trend Hashtag Sorgusu
+Sorgu:
+EXPLAIN ANALYZE
+SELECT h.tag_name, COUNT(*) AS count
+FROM post_hashtag ph
+JOIN hashtags h ON ph.hashtag_id = h.id
+GROUP BY h.tag_name
+ORDER BY count DESC
+LIMIT 10;
+Sonuç:
+Join performansı post_hashtag indeksleri sayesinde iyileşmiştir.
+Hashtag analizinde indeksleme zorunludur.
+6. Genel Değerlendirme
+Bu çalışma sonucunda:
+En kritik sorgular belirlenmiş ve optimize edilmiştir.
+Platform + tarih sorguları için composite index eklenmiştir.
+Keyword arama için Full Text Search kullanımı planlanmıştır.
+Join işlemleri için post_hashtag indeksleri eklenmiştir.
+API tarafında pagination zorunlu hale getirilerek gereksiz yük azaltılmıştır.
+Bu optimizasyonlar sistemin ölçeklenebilirliğini artırmakta ve ilerleyen aşamalarda Kafka/Spark gibi bileşenlerle çalışacak pipeline’ın DB tarafında darboğaz oluşturmasını engellemektedir.
