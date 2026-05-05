@@ -1233,3 +1233,10 @@ Keyword arama için Full Text Search kullanımı planlanmıştır.
 Join işlemleri için post_hashtag indeksleri eklenmiştir.
 API tarafında pagination zorunlu hale getirilerek gereksiz yük azaltılmıştır.
 Bu optimizasyonlar sistemin ölçeklenebilirliğini artırmakta ve ilerleyen aşamalarda Kafka/Spark gibi bileşenlerle çalışacak pipeline’ın DB tarafında darboğaz oluşturmasını engellemektedir.
+## Hafta 6 - Kullanici Kabul Testleri (UAT) ve Geri Bildirim Toplama
+
+Kullanici kabul testleri kapsaminda web arayuzu, API erisimleri, trend gorunumu, sentiment gorunumu, bos veri durumlari, hata mesajlari ve mobil kullanim senaryolari degerlendirilmistir.
+
+Toplam 10 UAT senaryosu basarili olarak tamamlanmis, kullanicilardan 5 geri bildirim toplanmistir. Kritik ve orta oncelikli geri bildirimler icin gerekli aksiyonlar tamamlanmis, raporlama/disa aktarma talebi sonraki surum icin planlanmistir.
+
+Detayli UAT ciktisi `UAT_Geri_Bildirim_Raporu.md` dosyasinda raporlanmistir.
