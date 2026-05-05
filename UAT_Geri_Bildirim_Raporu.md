@@ -89,7 +89,15 @@ UAT kapsaminda web arayuzu, API erisimleri, analiz sonuclarinin gosterimi, hata 
 | Tamamlanan geri bildirim aksiyonu | 4 |
 | Sonraki surume aktarilan aksiyon | 1 |
 
-## 9. Sonuc
+## 9. Teslim Ciktilari
+
+| Cikti | Aciklama |
+| :--- | :--- |
+| `UAT_Geri_Bildirim_Raporu.md` | UAT senaryolari, geri bildirimler, aksiyonlar ve sonuc ozeti |
+| `UAT_Kullanici_Geri_Bildirim_Formu.md` | Kullanici testlerinde doldurulabilecek geri bildirim formu ve kontrol listesi |
+| `projeakisi.md` | Hafta 6 gorev ozetinin proje akisina eklenmis hali |
+
+## 10. Sonuc
 
 Kullanici kabul testleri sonucunda platformun temel analiz, trend goruntuleme, sentiment goruntuleme ve hata durumu yonetimi beklentilerini karsiladigi degerlendirilmistir. Toplanan geri bildirimler onceliklendirilmis, kritik ve orta seviye aksiyonlar tamamlanmis, raporlama/disa aktarma talebi ise sonraki surum icin planlanmistir.
 

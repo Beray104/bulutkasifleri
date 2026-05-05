@@ -1239,4 +1239,4 @@ Kullanici kabul testleri kapsaminda web arayuzu, API erisimleri, trend gorunumu,
 
 Toplam 10 UAT senaryosu basarili olarak tamamlanmis, kullanicilardan 5 geri bildirim toplanmistir. Kritik ve orta oncelikli geri bildirimler icin gerekli aksiyonlar tamamlanmis, raporlama/disa aktarma talebi sonraki surum icin planlanmistir.
 
-Detayli UAT ciktisi `UAT_Geri_Bildirim_Raporu.md` dosyasinda raporlanmistir.
+Detayli UAT ciktisi `UAT_Geri_Bildirim_Raporu.md` dosyasinda raporlanmistir. Kullanici geri bildirimlerinin standart sekilde toplanmasi icin `UAT_Kullanici_Geri_Bildirim_Formu.md` dosyasi hazirlanmistir.
