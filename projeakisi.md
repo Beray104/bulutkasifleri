@@ -1233,3 +1233,199 @@ Keyword arama için Full Text Search kullanımı planlanmıştır.
 Join işlemleri için post_hashtag indeksleri eklenmiştir.
 API tarafında pagination zorunlu hale getirilerek gereksiz yük azaltılmıştır.
 Bu optimizasyonlar sistemin ölçeklenebilirliğini artırmakta ve ilerleyen aşamalarda Kafka/Spark gibi bileşenlerle çalışacak pipeline’ın DB tarafında darboğaz oluşturmasını engellemektedir.
+
+# Sosyal Medya API Entegrasyonu Araştırması
+
+**Proje:** Dağıtık Sosyal Medya Analiz Platformu  
+**Hazırlayan:** Hasan Kara  
+**Tarih:** 4 Mayıs 2026
+
+---
+
+## Yönetici Özeti
+
+2023-2026 arasında sosyal medya API'leri ücretsiz erişimden ücretli modele geçti. X (Twitter) artık aylık $200, Meta ücretsiz ama karmaşık onay süreci gerektiriyor. LinkedIn en kısıtlayıcı, TikTok 2-8 hafta onay istiyor.
+
+**Önerilen Çözüm:** Başlangıç için X Native API ($30-70/ay) + Unified API (WoopSocial $19/ay)
+
+---
+
+## 1. Platform Karşılaştırması
+
+### X (Twitter) API
+
+**Fiyatlandırma:**
+- Pay-per-use: $0.01/post yazma, $0.005/post okuma
+- Basic: $200/ay (10K okuma, 3K yazma)
+- Pro: $5,000/ay (1M okuma)
+- Enterprise: $50,000+/ay
+
+**Artılar:** En zengin gerçek zamanlı veri, güçlü arama  
+**Eksiler:** Pahalı, Basic-Pro arası 50x fark
+
+**Proje için:** ✅ Kritik - Native API kullan
+
+---
+
+### Meta (Facebook/Instagram)
+
+**Fiyatlandırma:** Ücretsiz (infrastructure maliyeti var)
+
+**Rate Limits:** 
+- Uygulama: 200 × kullanıcı sayısı / saat
+- Kullanıcı: ~200 istek/saat
+
+**App Review:** 10-30 gün, video demo gerekli
+
+**Artılar:** Ücretsiz, 3B+ kullanıcı erişimi  
+**Eksiler:** Uzun onay, kişisel hesap yok
+
+**Proje için:** ✅ Önemli - Unified API ile başla
+
+---
+
+### LinkedIn API
+
+**Fiyatlandırma:** Partnership gerekli (gizli)
+
+**Limitler:** 100K istek/gün, bazı endpoint'ler 10/gün
+
+**Artılar:** B2B için değerli  
+**Eksiler:** En kısıtlayıcı, aylar süren onay
+
+**Proje için:** ❌ Phase 2'ye ertele
+
+---
+
+### TikTok API
+
+**Fiyatlandırma:** Ücretsiz
+
+**Onay Süresi:** 2-8 hafta, sandbox test zorunlu
+
+**Artılar:** 1.5B+ kullanıcı, genç demografik  
+**Eksiler:** Belirsiz rate limitler, uzun onay
+
+**Proje için:** ⚠️ Şimdi başvur, Phase 2'de entegre et
+
+---
+
+## 2. Unified API Çözümleri
+
+Tek endpoint ile çoklu platform erişimi:
+
+| Sağlayıcı | Fiyat | Platform | Özellik |
+|-----------|-------|----------|---------|
+| **WoopSocial** | $19/ay | 7 | En ucuz, MCP desteği |
+| **Ayrshare** | $99/ay | 15+ | Webhooks, analytics |
+| **Phyllo** | Custom | 10+ | Creator focus |
+
+**Avantajlar:** Hızlı başlangıç, tek entegrasyon, bakım yok  
+**Dezavantajlar:** Vendor lock-in, daha az kontrol
+
+---
+
+## 3. Önerilen Strateji
+
+### Phase 1: MVP (Hafta 1-6)
+
+**Stack:**
+```
+X Native API (Pay-per-use) → Twitter data
+WoopSocial ($19/ay) → Instagram/Facebook
+```
+
+**Maliyet:** $30-70/ay  
+**Özellikler:** Real-time tweets, IG/FB posts, basic analytics
+
+**İlk Hafta Aksiyonlar:**
+- [x] X API hesabı + ödeme
+- [x] WoopSocial trial
+- [x] TikTok başvurusu (8 hafta buffer)
+- [x] Meta App Review dokümanı
+
+---
+
+### Phase 2: Scale (Hafta 7-12)
+
+**Geçişler:**
+- X: Pay-per-use → Basic ($200/ay) eğer >20K okuma
+- Meta: Native API (app review onaylandıysa)
+- TikTok: Unified API ile ekle
+
+**Maliyet:** $270-350/ay  
+**Özellikler:** 4-5 platform, advanced analytics, multi-account
+
+---
+
+### Phase 3: Enterprise (Ay 4+)
+
+**Ek Platformlar:** LinkedIn, Reddit, YouTube  
+**Maliyet:** $500-5,500/ay (volume'e göre)
+
+---
+
+## 4. Teknik Implementation
+
+### Rate Limit Yönetimi
+```python
+# Caching stratejisi
+- User profiles: 24 saat
+- Posts: 1 saat
+- Trending: 15 dakika
+- Real-time: Cache yok
+
+# Tasarruf: %60-80 rate limit azalması
+```
+
+### Token Yönetimi
+- OAuth 2.0 kullan
+- Refresh token automation
+- 60 gün önceden yenile
+
+---
+
+## 5. Maliyet Projeksiyonu
+
+| Kullanıcı | API Call/Ay | Phase 1 | Phase 2 | Phase 3 |
+|-----------|-------------|---------|---------|---------|
+| 10 | 10K | $50 | $150 | $300 |
+| 100 | 100K | $70 | $250 | $600 |
+| 1,000 | 1M | $150 | $500 | $2,000 |
+
+---
+
+## 6. Risk ve Çözümler
+
+| Risk | Çözüm |
+|------|-------|
+| API fiyat artışı | Unified API backup |
+| App review red | Phase 1'de unified kullan |
+| Rate limit aşımı | Caching + queue |
+| Token expiry | Auto-refresh system |
+
+---
+
+## 7. Sonuç
+
+**MVP için en iyi seçim:**
+- ✅ X Native API (kritik data için)
+- ✅ WoopSocial (hız ve maliyet için)
+- ❌ LinkedIn (şimdilik değil)
+- ⏳ TikTok (başvuru yap, sonra ekle)
+
+**Toplam maliyet:** $30-70/ay  
+**Geliştirme süresi:** 3-4 hafta  
+**Risk:** Düşük
+
+---
+
+## Kaynaklar
+
+- X API: https://developer.x.com
+- Meta API: https://developers.facebook.com
+- WoopSocial: https://woopsocial.com
+- Ayrshare: https://ayrshare.com
+
+**İletişim:** hasankara@example.com
+
