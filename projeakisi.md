@@ -1240,3 +1240,11 @@ Kullanici kabul testleri kapsaminda web arayuzu, API erisimleri, trend gorunumu,
 Toplam 10 UAT senaryosu basarili olarak tamamlanmis, kullanicilardan 5 geri bildirim toplanmistir. Kritik ve orta oncelikli geri bildirimler icin gerekli aksiyonlar tamamlanmis, raporlama/disa aktarma talebi sonraki surum icin planlanmistir.
 
 Detayli UAT ciktisi `UAT_Geri_Bildirim_Raporu.md` dosyasinda raporlanmistir. Kullanici geri bildirimlerinin standart sekilde toplanmasi icin `UAT_Kullanici_Geri_Bildirim_Formu.md` dosyasi hazirlanmistir.
+
+## Hafta 1 - Teknik Altyapi ve Gelistirme Ortami Kurulumu
+
+Proje icin gerekli Java, Spring Boot, Apache Kafka, Apache Spark, Elasticsearch, SQL veritabani, Docker, IDE ve Git altyapisi tanimlanmis ve takim uyelerinin ortak gelistirme ortamini kurabilmesi icin standart kurulum adimlari hazirlanmistir.
+
+Yerel servislerin Docker Compose ile baslatilmasi, Maven Wrapper ile test/build alinmasi, Spring Boot uygulamasinin calistirilmasi, Kafka topic kontrolu, Elasticsearch saglik kontrolu ve Git branch is akisi dokumante edilmistir.
+
+Detayli teknik altyapi kurulumu `Teknik_Altyapi_Gelistirme_Ortami_Kurulum_Raporu.md` dosyasinda raporlanmistir.
