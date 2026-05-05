@@ -1248,3 +1248,11 @@ Proje icin gerekli Java, Spring Boot, Apache Kafka, Apache Spark, Elasticsearch,
 Yerel servislerin Docker Compose ile baslatilmasi, Maven Wrapper ile test/build alinmasi, Spring Boot uygulamasinin calistirilmasi, Kafka topic kontrolu, Elasticsearch saglik kontrolu ve Git branch is akisi dokumante edilmistir.
 
 Detayli teknik altyapi kurulumu `Teknik_Altyapi_Gelistirme_Ortami_Kurulum_Raporu.md` dosyasinda raporlanmistir.
+
+## Hafta 3 - Gercek Zamanli Analiz Motoru Mimarisi
+
+Apache Spark kullanilarak gercek zamanli sosyal medya analizlerini isleyecek analiz motoru mimarisi tasarlanmistir. Spark Streaming ve Spark Structured Streaming secenekleri degerlendirilmis, sema tabanli veri isleme, Kafka entegrasyonu, checkpoint destegi ve Elasticsearch/OpenSearch sink uyumu nedeniyle Spark Structured Streaming tercih edilmistir.
+
+Veri akisi Kafka `social-media-topic` topic'inden baslayip JSON parse, tokenization, hashtag cikarimi, sozluk tabanli sentiment analizi ve `social_media_analytics` indeksine yazma adimlariyla tanimlanmistir. Olceklenebilirlik icin Kafka partition, Spark executor, shuffle partition ve Elasticsearch shard stratejileri; hata dayanikliligi icin Kafka offset, checkpoint ve monitoring mekanizmalari belirlenmistir.
+
+Detayli analiz motoru mimarisi `Gercek_Zamanli_Analiz_Motoru_Mimarisi.md` dosyasinda raporlanmistir.
