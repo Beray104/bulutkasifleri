@@ -1256,3 +1256,11 @@ Apache Spark kullanilarak gercek zamanli sosyal medya analizlerini isleyecek ana
 Veri akisi Kafka `social-media-topic` topic'inden baslayip JSON parse, tokenization, hashtag cikarimi, sozluk tabanli sentiment analizi ve `social_media_analytics` indeksine yazma adimlariyla tanimlanmistir. Olceklenebilirlik icin Kafka partition, Spark executor, shuffle partition ve Elasticsearch shard stratejileri; hata dayanikliligi icin Kafka offset, checkpoint ve monitoring mekanizmalari belirlenmistir.
 
 Detayli analiz motoru mimarisi `Gercek_Zamanli_Analiz_Motoru_Mimarisi.md` dosyasinda raporlanmistir.
+
+## Hafta 2 - Apache Kafka ve Apache Spark Veri Akis Mimarisi Analizi ve Topic Tasarimi
+
+Apache Kafka ve Apache Spark uzerinde calisacak dagitik veri akis mimarisi analiz edilmis, Twitter/Facebook gibi sosyal medya kaynaklarindan gelen ham icerik, kullanici etkilesimi ve metadata verileri icin ayri Kafka topic tasarimlari yapilmistir.
+
+Topic bazinda partition sayisi, replication factor, retention suresi, mesaj semasi, Spark Structured Streaming job sorumluluklari, latency/throughput hedefleri ve hata yonetimi yaklasimi belirlenmistir. Kafka'dan Spark'a, Spark'tan Elasticsearch/OpenSearch'e uzanan veri akis diyagrami rapora eklenmistir.
+
+Detayli topic ve veri akis mimarisi `Kafka_Spark_Veri_Akis_Mimarisi_Topic_Tasarimi.md` dosyasinda raporlanmistir.
