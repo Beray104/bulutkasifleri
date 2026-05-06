@@ -1429,3 +1429,503 @@ WoopSocial ($19/ay) → Instagram/Facebook
 
 **İletişim:** hasankara@example.com
 
+# Elasticsearch Veri Modeli Tasarimi
+
+**Proje:** Dagitik Sosyal Medya Analiz Platformu  
+**Hazirlayan:** Hasan Kara  
+**Tarih:** 6 Mayis 2026  
+**Teslim Tarihi:** 10 Mayis 2026
+
+---
+
+## 1. Giris
+
+Bu dokuman, sosyal medya verilerinin Elasticsearch uzerinde nasil saklanacagini ve indekslendigi aciklar. Twitter, Instagram ve Facebook'tan toplanan veriler gercek zamanli olarak analiz edilecek; trend tespiti ve duygu analizi yapilacaktir.
+
+---
+
+## 2. Index Tasarimi
+
+Her platform icin ayri index kullanilir. Bu yaklasim:
+- Platform bazli sorgulari hizlandirir
+- Her platformun farkli veri yapisini destekler
+- Buyuk veri kumelerinde performansi arttirir
+
+### Index Listesi
+
+| Index Adi | Icerik |
+|-----------|--------|
+| `social_posts` | Tum platform postlari |
+| `social_users` | Kullanici profilleri |
+| `social_trends` | Trend konular ve hashtagler |
+| `social_analytics` | Analiz sonuclari |
+
+---
+
+## 3. Mapping Tasarimlari
+
+### 3.1 social_posts Index
+
+Tum sosyal medya postlarini icerir.
+
+```json
+PUT /social_posts
+{
+  "settings": {
+    "number_of_shards": 5,
+    "number_of_replicas": 1,
+    "analysis": {
+      "analyzer": {
+        "turkish_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "turkish_stop", "turkish_stemmer"]
+        },
+        "english_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "english_stop", "english_stemmer"]
+        }
+      },
+      "filter": {
+        "turkish_stop": {
+          "type": "stop",
+          "stopwords": "_turkish_"
+        },
+        "turkish_stemmer": {
+          "type": "stemmer",
+          "language": "turkish"
+        },
+        "english_stop": {
+          "type": "stop",
+          "stopwords": "_english_"
+        },
+        "english_stemmer": {
+          "type": "stemmer",
+          "language": "english"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "post_id": {
+        "type": "keyword"
+      },
+      "platform": {
+        "type": "keyword"
+      },
+      "content": {
+        "type": "text",
+        "analyzer": "turkish_analyzer",
+        "fields": {
+          "english": {
+            "type": "text",
+            "analyzer": "english_analyzer"
+          },
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "author": {
+        "properties": {
+          "user_id":       { "type": "keyword" },
+          "username":      { "type": "keyword" },
+          "display_name":  { "type": "text" },
+          "verified":      { "type": "boolean" },
+          "follower_count":{ "type": "integer" }
+        }
+      },
+      "metrics": {
+        "properties": {
+          "likes":    { "type": "integer" },
+          "shares":   { "type": "integer" },
+          "comments": { "type": "integer" },
+          "views":    { "type": "long" },
+          "engagement_rate": { "type": "float" }
+        }
+      },
+      "sentiment": {
+        "properties": {
+          "score":  { "type": "float" },
+          "label":  { "type": "keyword" },
+          "confidence": { "type": "float" }
+        }
+      },
+      "hashtags":  { "type": "keyword" },
+      "mentions":  { "type": "keyword" },
+      "language":  { "type": "keyword" },
+      "location": {
+        "type": "geo_point"
+      },
+      "media_type": { "type": "keyword" },
+      "url":        { "type": "keyword", "index": false },
+      "created_at": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+      "indexed_at": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+      "is_repost":  { "type": "boolean" },
+      "parent_post_id": { "type": "keyword" }
+    }
+  }
+}
+```
+
+---
+
+### 3.2 social_users Index
+
+Kullanici profillerini saklar.
+
+```json
+PUT /social_users
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "user_id":        { "type": "keyword" },
+      "platform":       { "type": "keyword" },
+      "username":       { "type": "keyword" },
+      "display_name":   { "type": "text" },
+      "bio":            { "type": "text" },
+      "verified":       { "type": "boolean" },
+      "follower_count": { "type": "integer" },
+      "following_count":{ "type": "integer" },
+      "post_count":     { "type": "integer" },
+      "avg_engagement": { "type": "float" },
+      "location":       { "type": "keyword" },
+      "joined_at":      { "type": "date" },
+      "last_active":    { "type": "date" },
+      "influence_score":{ "type": "float" }
+    }
+  }
+}
+```
+
+---
+
+### 3.3 social_trends Index
+
+Trend konulari ve hashtagleri takip eder.
+
+```json
+PUT /social_trends
+{
+  "settings": {
+    "number_of_shards": 2,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "trend_id":      { "type": "keyword" },
+      "hashtag":       { "type": "keyword" },
+      "platform":      { "type": "keyword" },
+      "post_count":    { "type": "integer" },
+      "unique_users":  { "type": "integer" },
+      "total_engagement": { "type": "long" },
+      "avg_sentiment": { "type": "float" },
+      "peak_hour":     { "type": "date" },
+      "related_hashtags": { "type": "keyword" },
+      "location":      { "type": "keyword" },
+      "language":      { "type": "keyword" },
+      "created_at":    { "type": "date" },
+      "updated_at":    { "type": "date" }
+    }
+  }
+}
+```
+
+---
+
+## 4. Veri Tipleri ve Neden Kullanildiklari
+
+| Tip | Kullanim Yeri | Neden |
+|-----|---------------|-------|
+| `keyword` | platform, hashtag, user_id | Tam eslesme arama, gruplama |
+| `text` | content, bio | Tam metin arama, analiz |
+| `integer` | likes, followers | Sayi arama ve siralama |
+| `float` | sentiment_score, engagement_rate | Ondalikli hesaplamalar |
+| `long` | views, total_engagement | Cok buyuk sayilar |
+| `boolean` | verified, is_repost | True/false degerler |
+| `date` | created_at, indexed_at | Zaman bazli sorgular |
+| `geo_point` | location | Cografik arama |
+
+---
+
+## 5. Shard ve Replica Stratejisi
+
+### Neden Shard?
+Buyuk veri kumelerini birden fazla node'a dagitmak icin kullanilir. Her shard bagimsiz arama yapabilir, bu da paralel sorgu anlamina gelir.
+
+```
+social_posts  → 5 shard (en fazla veri)
+social_users  → 3 shard (orta hacim)
+social_trends → 2 shard (az veri, sik guncelleme)
+```
+
+### Neden Replica?
+Bir node cokerse diger node devreye girer. Ayrica okuma sorgularini dagitir.
+
+```
+Her index icin: 1 replica
+Uretimde: 2 replica onerilir
+```
+
+---
+
+## 6. Performans Optimizasyon Stratejileri
+
+### 6.1 Index Template Kullanimi
+
+Yeni indexler otomatik ayarlarla olusturulur:
+
+```json
+PUT /_index_template/social_media_template
+{
+  "index_patterns": ["social_*"],
+  "template": {
+    "settings": {
+      "refresh_interval": "5s",
+      "number_of_replicas": 1
+    }
+  }
+}
+```
+
+### 6.2 Refresh Interval Ayari
+
+- Gercek zamanli analiz icin: `1s`
+- Toplu veri yuklemede: `30s` veya `-1` (manuel refresh)
+
+```json
+PUT /social_posts/_settings
+{
+  "refresh_interval": "5s"
+}
+```
+
+### 6.3 ILM (Index Lifecycle Management)
+
+Eski veriler otomatik olarak arsivlenir:
+
+```json
+PUT /_ilm/policy/social_media_policy
+{
+  "policy": {
+    "phases": {
+      "hot": {
+        "min_age": "0ms",
+        "actions": {
+          "rollover": {
+            "max_size": "50gb",
+            "max_age": "7d"
+          }
+        }
+      },
+      "warm": {
+        "min_age": "7d",
+        "actions": {
+          "shrink": { "number_of_shards": 1 },
+          "forcemerge": { "max_num_segments": 1 }
+        }
+      },
+      "cold": {
+        "min_age": "30d",
+        "actions": {
+          "freeze": {}
+        }
+      },
+      "delete": {
+        "min_age": "90d",
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  }
+}
+```
+
+### 6.4 Caching Stratejisi
+
+```json
+PUT /social_posts/_settings
+{
+  "index.requests.cache.enable": true
+}
+```
+
+- **Request cache:** Ayni sorgu tekrar gelirse cache'den doner
+- **Field data cache:** Aggregation sorgulari icin
+- **Node query cache:** Filter sorgulari icin
+
+---
+
+## 7. Ornek Sorgular
+
+### 7.1 Son 24 Saatin Trendleri
+
+```json
+GET /social_posts/_search
+{
+  "query": {
+    "range": {
+      "created_at": {
+        "gte": "now-24h"
+      }
+    }
+  },
+  "aggs": {
+    "trending_hashtags": {
+      "terms": {
+        "field": "hashtags",
+        "size": 10
+      }
+    }
+  },
+  "size": 0
+}
+```
+
+### 7.2 Platform Bazli Duygu Analizi
+
+```json
+GET /social_posts/_search
+{
+  "aggs": {
+    "by_platform": {
+      "terms": { "field": "platform" },
+      "aggs": {
+        "avg_sentiment": {
+          "avg": { "field": "sentiment.score" }
+        }
+      }
+    }
+  },
+  "size": 0
+}
+```
+
+### 7.3 Icerik Arama
+
+```json
+GET /social_posts/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "yapay zeka",
+      "fields": ["content", "content.english"],
+      "type": "best_fields"
+    }
+  },
+  "highlight": {
+    "fields": {
+      "content": {}
+    }
+  }
+}
+```
+
+---
+
+## 8. Veri Akis Mimarisi
+
+```
+Sosyal Medya API'leri
+        |
+        v
+   Apache Kafka
+  (Mesaj Kuyrugu)
+        |
+        v
+  Apache Spark
+ (Veri Isleme +
+Duygu Analizi)
+        |
+        v
+  Elasticsearch
+  (Saklama ve
+    Indeksleme)
+        |
+        v
+   Kibana / API
+  (Gorsellestirme)
+```
+
+---
+
+## 9. Dokuman Ornekleri
+
+### Twitter Post Ornegi
+
+```json
+{
+  "post_id": "x_1234567890",
+  "platform": "twitter",
+  "content": "Yapay zeka teknolojileri inanilmaz gelisiyor! #AI #teknoloji",
+  "author": {
+    "user_id": "u_987654",
+    "username": "techuser",
+    "display_name": "Tech Kullanicisi",
+    "verified": false,
+    "follower_count": 1500
+  },
+  "metrics": {
+    "likes": 42,
+    "shares": 8,
+    "comments": 5,
+    "views": 1200,
+    "engagement_rate": 0.046
+  },
+  "sentiment": {
+    "score": 0.85,
+    "label": "positive",
+    "confidence": 0.92
+  },
+  "hashtags": ["AI", "teknoloji"],
+  "mentions": [],
+  "language": "tr",
+  "media_type": "text",
+  "created_at": "2026-05-06T10:30:00Z",
+  "indexed_at": "2026-05-06T10:30:05Z",
+  "is_repost": false
+}
+```
+
+---
+
+## 10. Tasarim Kararlari ve Gerekceler
+
+| Karar | Gerekcesi |
+|-------|-----------|
+| Platform bazi ayri index | Her platformun farkli veri yapisi var, ayri index yonetimi kolaylastirir |
+| `keyword` + `text` cift alan | Hem tam metin arama hem de gruplama/filtreleme icin |
+| 5 shard (social_posts) | Buyuk veri hacmi bekleniyor, paralel sorgu performansi |
+| ILM ile 90 gun sonra silme | Storage maliyetini dusuk tutar |
+| Geo_point alani | Lokasyon bazli trend analizi icin |
+| Multi-dil analyzer | Turkce ve Ingilizce icerik destegi |
+| Refresh interval 5s | Gercek zamanliliga yakin ama performansi korur |
+
+---
+
+## 11. Sonuc
+
+Bu veri modeli tasarimi:
+- Gercek zamanli sosyal medya analizini destekler
+- Yuksek hacimli veriyi verimli saklar
+- Trend tespiti ve duygu analizi icin optimize edilmistir
+- Olceklenebilir ve bakim kolaydir
+
+**Bir sonraki adim:** Apache Kafka ile Elasticsearch arasindaki veri pipeline'inin kurulmasi.
+
+---
+
+## Kaynaklar
+
+- Elasticsearch Resmi Dokumantasyon: https://www.elastic.co/guide
+- Elastic Stack Best Practices: https://www.elastic.co/blog
+- Index Lifecycle Management: https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html
+
