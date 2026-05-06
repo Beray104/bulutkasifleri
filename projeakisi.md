@@ -1233,6 +1233,37 @@ Keyword arama için Full Text Search kullanımı planlanmıştır.
 Join işlemleri için post_hashtag indeksleri eklenmiştir.
 API tarafında pagination zorunlu hale getirilerek gereksiz yük azaltılmıştır.
 Bu optimizasyonlar sistemin ölçeklenebilirliğini artırmakta ve ilerleyen aşamalarda Kafka/Spark gibi bileşenlerle çalışacak pipeline’ın DB tarafında darboğaz oluşturmasını engellemektedir.
+## Hafta 6 - Kullanici Kabul Testleri (UAT) ve Geri Bildirim Toplama
+
+Kullanici kabul testleri kapsaminda web arayuzu, API erisimleri, trend gorunumu, sentiment gorunumu, bos veri durumlari, hata mesajlari ve mobil kullanim senaryolari degerlendirilmistir.
+
+Toplam 10 UAT senaryosu basarili olarak tamamlanmis, kullanicilardan 5 geri bildirim toplanmistir. Kritik ve orta oncelikli geri bildirimler icin gerekli aksiyonlar tamamlanmis, raporlama/disa aktarma talebi sonraki surum icin planlanmistir.
+
+Detayli UAT ciktisi `UAT_Geri_Bildirim_Raporu.md` dosyasinda raporlanmistir. Kullanici geri bildirimlerinin standart sekilde toplanmasi icin `UAT_Kullanici_Geri_Bildirim_Formu.md` dosyasi hazirlanmistir.
+
+## Hafta 1 - Teknik Altyapi ve Gelistirme Ortami Kurulumu
+
+Proje icin gerekli Java, Spring Boot, Apache Kafka, Apache Spark, Elasticsearch, SQL veritabani, Docker, IDE ve Git altyapisi tanimlanmis ve takim uyelerinin ortak gelistirme ortamini kurabilmesi icin standart kurulum adimlari hazirlanmistir.
+
+Yerel servislerin Docker Compose ile baslatilmasi, Maven Wrapper ile test/build alinmasi, Spring Boot uygulamasinin calistirilmasi, Kafka topic kontrolu, Elasticsearch saglik kontrolu ve Git branch is akisi dokumante edilmistir.
+
+Detayli teknik altyapi kurulumu `Teknik_Altyapi_Gelistirme_Ortami_Kurulum_Raporu.md` dosyasinda raporlanmistir.
+
+## Hafta 3 - Gercek Zamanli Analiz Motoru Mimarisi
+
+Apache Spark kullanilarak gercek zamanli sosyal medya analizlerini isleyecek analiz motoru mimarisi tasarlanmistir. Spark Streaming ve Spark Structured Streaming secenekleri degerlendirilmis, sema tabanli veri isleme, Kafka entegrasyonu, checkpoint destegi ve Elasticsearch/OpenSearch sink uyumu nedeniyle Spark Structured Streaming tercih edilmistir.
+
+Veri akisi Kafka `social-media-topic` topic'inden baslayip JSON parse, tokenization, hashtag cikarimi, sozluk tabanli sentiment analizi ve `social_media_analytics` indeksine yazma adimlariyla tanimlanmistir. Olceklenebilirlik icin Kafka partition, Spark executor, shuffle partition ve Elasticsearch shard stratejileri; hata dayanikliligi icin Kafka offset, checkpoint ve monitoring mekanizmalari belirlenmistir.
+
+Detayli analiz motoru mimarisi `Gercek_Zamanli_Analiz_Motoru_Mimarisi.md` dosyasinda raporlanmistir.
+
+## Hafta 2 - Apache Kafka ve Apache Spark Veri Akis Mimarisi Analizi ve Topic Tasarimi
+
+Apache Kafka ve Apache Spark uzerinde calisacak dagitik veri akis mimarisi analiz edilmis, Twitter/Facebook gibi sosyal medya kaynaklarindan gelen ham icerik, kullanici etkilesimi ve metadata verileri icin ayri Kafka topic tasarimlari yapilmistir.
+
+Topic bazinda partition sayisi, replication factor, retention suresi, mesaj semasi, Spark Structured Streaming job sorumluluklari, latency/throughput hedefleri ve hata yonetimi yaklasimi belirlenmistir. Kafka'dan Spark'a, Spark'tan Elasticsearch/OpenSearch'e uzanan veri akis diyagrami rapora eklenmistir.
+
+Detayli topic ve veri akis mimarisi `Kafka_Spark_Veri_Akis_Mimarisi_Topic_Tasarimi.md` dosyasinda raporlanmistir.
 
 # Sosyal Medya API Entegrasyonu Araştırması
 

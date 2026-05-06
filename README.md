@@ -101,3 +101,7 @@ Sistem dağıtık mimari kullanılarak geliştirilecektir. Sistemin temel bileş
 
 ## 10. Sonuç
 Bu proje kapsamında sosyal medya platformlarından elde edilen verilerin gerçek zamanlı olarak analiz edilmesi ve kullanıcıya sunulması amaçlanmaktadır. Dağıtık sistem teknolojileri kullanılarak geliştirilecek olan bu platform, büyük veri analizine uygun ölçeklenebilir bir yapı sunacaktır.
+
+## 11. Teknik Mimari Raporlari
+
+* [Apache Kafka ve Apache Spark Veri Akis Mimarisi Analizi ve Topic Tasarimi](Kafka_Spark_Veri_Akis_Mimarisi_Topic_Tasarimi.md)
