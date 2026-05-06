@@ -1264,3 +1264,699 @@ Apache Kafka ve Apache Spark uzerinde calisacak dagitik veri akis mimarisi anali
 Topic bazinda partition sayisi, replication factor, retention suresi, mesaj semasi, Spark Structured Streaming job sorumluluklari, latency/throughput hedefleri ve hata yonetimi yaklasimi belirlenmistir. Kafka'dan Spark'a, Spark'tan Elasticsearch/OpenSearch'e uzanan veri akis diyagrami rapora eklenmistir.
 
 Detayli topic ve veri akis mimarisi `Kafka_Spark_Veri_Akis_Mimarisi_Topic_Tasarimi.md` dosyasinda raporlanmistir.
+
+# Sosyal Medya API Entegrasyonu Araştırması
+
+**Proje:** Dağıtık Sosyal Medya Analiz Platformu  
+**Hazırlayan:** Hasan Kara  
+**Tarih:** 4 Mayıs 2026
+
+---
+
+## Yönetici Özeti
+
+2023-2026 arasında sosyal medya API'leri ücretsiz erişimden ücretli modele geçti. X (Twitter) artık aylık $200, Meta ücretsiz ama karmaşık onay süreci gerektiriyor. LinkedIn en kısıtlayıcı, TikTok 2-8 hafta onay istiyor.
+
+**Önerilen Çözüm:** Başlangıç için X Native API ($30-70/ay) + Unified API (WoopSocial $19/ay)
+
+---
+
+## 1. Platform Karşılaştırması
+
+### X (Twitter) API
+
+**Fiyatlandırma:**
+- Pay-per-use: $0.01/post yazma, $0.005/post okuma
+- Basic: $200/ay (10K okuma, 3K yazma)
+- Pro: $5,000/ay (1M okuma)
+- Enterprise: $50,000+/ay
+
+**Artılar:** En zengin gerçek zamanlı veri, güçlü arama  
+**Eksiler:** Pahalı, Basic-Pro arası 50x fark
+
+**Proje için:** ✅ Kritik - Native API kullan
+
+---
+
+### Meta (Facebook/Instagram)
+
+**Fiyatlandırma:** Ücretsiz (infrastructure maliyeti var)
+
+**Rate Limits:** 
+- Uygulama: 200 × kullanıcı sayısı / saat
+- Kullanıcı: ~200 istek/saat
+
+**App Review:** 10-30 gün, video demo gerekli
+
+**Artılar:** Ücretsiz, 3B+ kullanıcı erişimi  
+**Eksiler:** Uzun onay, kişisel hesap yok
+
+**Proje için:** ✅ Önemli - Unified API ile başla
+
+---
+
+### LinkedIn API
+
+**Fiyatlandırma:** Partnership gerekli (gizli)
+
+**Limitler:** 100K istek/gün, bazı endpoint'ler 10/gün
+
+**Artılar:** B2B için değerli  
+**Eksiler:** En kısıtlayıcı, aylar süren onay
+
+**Proje için:** ❌ Phase 2'ye ertele
+
+---
+
+### TikTok API
+
+**Fiyatlandırma:** Ücretsiz
+
+**Onay Süresi:** 2-8 hafta, sandbox test zorunlu
+
+**Artılar:** 1.5B+ kullanıcı, genç demografik  
+**Eksiler:** Belirsiz rate limitler, uzun onay
+
+**Proje için:** ⚠️ Şimdi başvur, Phase 2'de entegre et
+
+---
+
+## 2. Unified API Çözümleri
+
+Tek endpoint ile çoklu platform erişimi:
+
+| Sağlayıcı | Fiyat | Platform | Özellik |
+|-----------|-------|----------|---------|
+| **WoopSocial** | $19/ay | 7 | En ucuz, MCP desteği |
+| **Ayrshare** | $99/ay | 15+ | Webhooks, analytics |
+| **Phyllo** | Custom | 10+ | Creator focus |
+
+**Avantajlar:** Hızlı başlangıç, tek entegrasyon, bakım yok  
+**Dezavantajlar:** Vendor lock-in, daha az kontrol
+
+---
+
+## 3. Önerilen Strateji
+
+### Phase 1: MVP (Hafta 1-6)
+
+**Stack:**
+```
+X Native API (Pay-per-use) → Twitter data
+WoopSocial ($19/ay) → Instagram/Facebook
+```
+
+**Maliyet:** $30-70/ay  
+**Özellikler:** Real-time tweets, IG/FB posts, basic analytics
+
+**İlk Hafta Aksiyonlar:**
+- [x] X API hesabı + ödeme
+- [x] WoopSocial trial
+- [x] TikTok başvurusu (8 hafta buffer)
+- [x] Meta App Review dokümanı
+
+---
+
+### Phase 2: Scale (Hafta 7-12)
+
+**Geçişler:**
+- X: Pay-per-use → Basic ($200/ay) eğer >20K okuma
+- Meta: Native API (app review onaylandıysa)
+- TikTok: Unified API ile ekle
+
+**Maliyet:** $270-350/ay  
+**Özellikler:** 4-5 platform, advanced analytics, multi-account
+
+---
+
+### Phase 3: Enterprise (Ay 4+)
+
+**Ek Platformlar:** LinkedIn, Reddit, YouTube  
+**Maliyet:** $500-5,500/ay (volume'e göre)
+
+---
+
+## 4. Teknik Implementation
+
+### Rate Limit Yönetimi
+```python
+# Caching stratejisi
+- User profiles: 24 saat
+- Posts: 1 saat
+- Trending: 15 dakika
+- Real-time: Cache yok
+
+# Tasarruf: %60-80 rate limit azalması
+```
+
+### Token Yönetimi
+- OAuth 2.0 kullan
+- Refresh token automation
+- 60 gün önceden yenile
+
+---
+
+## 5. Maliyet Projeksiyonu
+
+| Kullanıcı | API Call/Ay | Phase 1 | Phase 2 | Phase 3 |
+|-----------|-------------|---------|---------|---------|
+| 10 | 10K | $50 | $150 | $300 |
+| 100 | 100K | $70 | $250 | $600 |
+| 1,000 | 1M | $150 | $500 | $2,000 |
+
+---
+
+## 6. Risk ve Çözümler
+
+| Risk | Çözüm |
+|------|-------|
+| API fiyat artışı | Unified API backup |
+| App review red | Phase 1'de unified kullan |
+| Rate limit aşımı | Caching + queue |
+| Token expiry | Auto-refresh system |
+
+---
+
+## 7. Sonuç
+
+**MVP için en iyi seçim:**
+- ✅ X Native API (kritik data için)
+- ✅ WoopSocial (hız ve maliyet için)
+- ❌ LinkedIn (şimdilik değil)
+- ⏳ TikTok (başvuru yap, sonra ekle)
+
+**Toplam maliyet:** $30-70/ay  
+**Geliştirme süresi:** 3-4 hafta  
+**Risk:** Düşük
+
+---
+
+## Kaynaklar
+
+- X API: https://developer.x.com
+- Meta API: https://developers.facebook.com
+- WoopSocial: https://woopsocial.com
+- Ayrshare: https://ayrshare.com
+
+**İletişim:** hasankara@example.com
+
+# Elasticsearch Veri Modeli Tasarimi
+
+**Proje:** Dagitik Sosyal Medya Analiz Platformu  
+**Hazirlayan:** Hasan Kara  
+**Tarih:** 6 Mayis 2026  
+**Teslim Tarihi:** 10 Mayis 2026
+
+---
+
+## 1. Giris
+
+Bu dokuman, sosyal medya verilerinin Elasticsearch uzerinde nasil saklanacagini ve indekslendigi aciklar. Twitter, Instagram ve Facebook'tan toplanan veriler gercek zamanli olarak analiz edilecek; trend tespiti ve duygu analizi yapilacaktir.
+
+---
+
+## 2. Index Tasarimi
+
+Her platform icin ayri index kullanilir. Bu yaklasim:
+- Platform bazli sorgulari hizlandirir
+- Her platformun farkli veri yapisini destekler
+- Buyuk veri kumelerinde performansi arttirir
+
+### Index Listesi
+
+| Index Adi | Icerik |
+|-----------|--------|
+| `social_posts` | Tum platform postlari |
+| `social_users` | Kullanici profilleri |
+| `social_trends` | Trend konular ve hashtagler |
+| `social_analytics` | Analiz sonuclari |
+
+---
+
+## 3. Mapping Tasarimlari
+
+### 3.1 social_posts Index
+
+Tum sosyal medya postlarini icerir.
+
+```json
+PUT /social_posts
+{
+  "settings": {
+    "number_of_shards": 5,
+    "number_of_replicas": 1,
+    "analysis": {
+      "analyzer": {
+        "turkish_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "turkish_stop", "turkish_stemmer"]
+        },
+        "english_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "english_stop", "english_stemmer"]
+        }
+      },
+      "filter": {
+        "turkish_stop": {
+          "type": "stop",
+          "stopwords": "_turkish_"
+        },
+        "turkish_stemmer": {
+          "type": "stemmer",
+          "language": "turkish"
+        },
+        "english_stop": {
+          "type": "stop",
+          "stopwords": "_english_"
+        },
+        "english_stemmer": {
+          "type": "stemmer",
+          "language": "english"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "post_id": {
+        "type": "keyword"
+      },
+      "platform": {
+        "type": "keyword"
+      },
+      "content": {
+        "type": "text",
+        "analyzer": "turkish_analyzer",
+        "fields": {
+          "english": {
+            "type": "text",
+            "analyzer": "english_analyzer"
+          },
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "author": {
+        "properties": {
+          "user_id":       { "type": "keyword" },
+          "username":      { "type": "keyword" },
+          "display_name":  { "type": "text" },
+          "verified":      { "type": "boolean" },
+          "follower_count":{ "type": "integer" }
+        }
+      },
+      "metrics": {
+        "properties": {
+          "likes":    { "type": "integer" },
+          "shares":   { "type": "integer" },
+          "comments": { "type": "integer" },
+          "views":    { "type": "long" },
+          "engagement_rate": { "type": "float" }
+        }
+      },
+      "sentiment": {
+        "properties": {
+          "score":  { "type": "float" },
+          "label":  { "type": "keyword" },
+          "confidence": { "type": "float" }
+        }
+      },
+      "hashtags":  { "type": "keyword" },
+      "mentions":  { "type": "keyword" },
+      "language":  { "type": "keyword" },
+      "location": {
+        "type": "geo_point"
+      },
+      "media_type": { "type": "keyword" },
+      "url":        { "type": "keyword", "index": false },
+      "created_at": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+      "indexed_at": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+      "is_repost":  { "type": "boolean" },
+      "parent_post_id": { "type": "keyword" }
+    }
+  }
+}
+```
+
+---
+
+### 3.2 social_users Index
+
+Kullanici profillerini saklar.
+
+```json
+PUT /social_users
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "user_id":        { "type": "keyword" },
+      "platform":       { "type": "keyword" },
+      "username":       { "type": "keyword" },
+      "display_name":   { "type": "text" },
+      "bio":            { "type": "text" },
+      "verified":       { "type": "boolean" },
+      "follower_count": { "type": "integer" },
+      "following_count":{ "type": "integer" },
+      "post_count":     { "type": "integer" },
+      "avg_engagement": { "type": "float" },
+      "location":       { "type": "keyword" },
+      "joined_at":      { "type": "date" },
+      "last_active":    { "type": "date" },
+      "influence_score":{ "type": "float" }
+    }
+  }
+}
+```
+
+---
+
+### 3.3 social_trends Index
+
+Trend konulari ve hashtagleri takip eder.
+
+```json
+PUT /social_trends
+{
+  "settings": {
+    "number_of_shards": 2,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "trend_id":      { "type": "keyword" },
+      "hashtag":       { "type": "keyword" },
+      "platform":      { "type": "keyword" },
+      "post_count":    { "type": "integer" },
+      "unique_users":  { "type": "integer" },
+      "total_engagement": { "type": "long" },
+      "avg_sentiment": { "type": "float" },
+      "peak_hour":     { "type": "date" },
+      "related_hashtags": { "type": "keyword" },
+      "location":      { "type": "keyword" },
+      "language":      { "type": "keyword" },
+      "created_at":    { "type": "date" },
+      "updated_at":    { "type": "date" }
+    }
+  }
+}
+```
+
+---
+
+## 4. Veri Tipleri ve Neden Kullanildiklari
+
+| Tip | Kullanim Yeri | Neden |
+|-----|---------------|-------|
+| `keyword` | platform, hashtag, user_id | Tam eslesme arama, gruplama |
+| `text` | content, bio | Tam metin arama, analiz |
+| `integer` | likes, followers | Sayi arama ve siralama |
+| `float` | sentiment_score, engagement_rate | Ondalikli hesaplamalar |
+| `long` | views, total_engagement | Cok buyuk sayilar |
+| `boolean` | verified, is_repost | True/false degerler |
+| `date` | created_at, indexed_at | Zaman bazli sorgular |
+| `geo_point` | location | Cografik arama |
+
+---
+
+## 5. Shard ve Replica Stratejisi
+
+### Neden Shard?
+Buyuk veri kumelerini birden fazla node'a dagitmak icin kullanilir. Her shard bagimsiz arama yapabilir, bu da paralel sorgu anlamina gelir.
+
+```
+social_posts  → 5 shard (en fazla veri)
+social_users  → 3 shard (orta hacim)
+social_trends → 2 shard (az veri, sik guncelleme)
+```
+
+### Neden Replica?
+Bir node cokerse diger node devreye girer. Ayrica okuma sorgularini dagitir.
+
+```
+Her index icin: 1 replica
+Uretimde: 2 replica onerilir
+```
+
+---
+
+## 6. Performans Optimizasyon Stratejileri
+
+### 6.1 Index Template Kullanimi
+
+Yeni indexler otomatik ayarlarla olusturulur:
+
+```json
+PUT /_index_template/social_media_template
+{
+  "index_patterns": ["social_*"],
+  "template": {
+    "settings": {
+      "refresh_interval": "5s",
+      "number_of_replicas": 1
+    }
+  }
+}
+```
+
+### 6.2 Refresh Interval Ayari
+
+- Gercek zamanli analiz icin: `1s`
+- Toplu veri yuklemede: `30s` veya `-1` (manuel refresh)
+
+```json
+PUT /social_posts/_settings
+{
+  "refresh_interval": "5s"
+}
+```
+
+### 6.3 ILM (Index Lifecycle Management)
+
+Eski veriler otomatik olarak arsivlenir:
+
+```json
+PUT /_ilm/policy/social_media_policy
+{
+  "policy": {
+    "phases": {
+      "hot": {
+        "min_age": "0ms",
+        "actions": {
+          "rollover": {
+            "max_size": "50gb",
+            "max_age": "7d"
+          }
+        }
+      },
+      "warm": {
+        "min_age": "7d",
+        "actions": {
+          "shrink": { "number_of_shards": 1 },
+          "forcemerge": { "max_num_segments": 1 }
+        }
+      },
+      "cold": {
+        "min_age": "30d",
+        "actions": {
+          "freeze": {}
+        }
+      },
+      "delete": {
+        "min_age": "90d",
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  }
+}
+```
+
+### 6.4 Caching Stratejisi
+
+```json
+PUT /social_posts/_settings
+{
+  "index.requests.cache.enable": true
+}
+```
+
+- **Request cache:** Ayni sorgu tekrar gelirse cache'den doner
+- **Field data cache:** Aggregation sorgulari icin
+- **Node query cache:** Filter sorgulari icin
+
+---
+
+## 7. Ornek Sorgular
+
+### 7.1 Son 24 Saatin Trendleri
+
+```json
+GET /social_posts/_search
+{
+  "query": {
+    "range": {
+      "created_at": {
+        "gte": "now-24h"
+      }
+    }
+  },
+  "aggs": {
+    "trending_hashtags": {
+      "terms": {
+        "field": "hashtags",
+        "size": 10
+      }
+    }
+  },
+  "size": 0
+}
+```
+
+### 7.2 Platform Bazli Duygu Analizi
+
+```json
+GET /social_posts/_search
+{
+  "aggs": {
+    "by_platform": {
+      "terms": { "field": "platform" },
+      "aggs": {
+        "avg_sentiment": {
+          "avg": { "field": "sentiment.score" }
+        }
+      }
+    }
+  },
+  "size": 0
+}
+```
+
+### 7.3 Icerik Arama
+
+```json
+GET /social_posts/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "yapay zeka",
+      "fields": ["content", "content.english"],
+      "type": "best_fields"
+    }
+  },
+  "highlight": {
+    "fields": {
+      "content": {}
+    }
+  }
+}
+```
+
+---
+
+## 8. Veri Akis Mimarisi
+
+```
+Sosyal Medya API'leri
+        |
+        v
+   Apache Kafka
+  (Mesaj Kuyrugu)
+        |
+        v
+  Apache Spark
+ (Veri Isleme +
+Duygu Analizi)
+        |
+        v
+  Elasticsearch
+  (Saklama ve
+    Indeksleme)
+        |
+        v
+   Kibana / API
+  (Gorsellestirme)
+```
+
+---
+
+## 9. Dokuman Ornekleri
+
+### Twitter Post Ornegi
+
+```json
+{
+  "post_id": "x_1234567890",
+  "platform": "twitter",
+  "content": "Yapay zeka teknolojileri inanilmaz gelisiyor! #AI #teknoloji",
+  "author": {
+    "user_id": "u_987654",
+    "username": "techuser",
+    "display_name": "Tech Kullanicisi",
+    "verified": false,
+    "follower_count": 1500
+  },
+  "metrics": {
+    "likes": 42,
+    "shares": 8,
+    "comments": 5,
+    "views": 1200,
+    "engagement_rate": 0.046
+  },
+  "sentiment": {
+    "score": 0.85,
+    "label": "positive",
+    "confidence": 0.92
+  },
+  "hashtags": ["AI", "teknoloji"],
+  "mentions": [],
+  "language": "tr",
+  "media_type": "text",
+  "created_at": "2026-05-06T10:30:00Z",
+  "indexed_at": "2026-05-06T10:30:05Z",
+  "is_repost": false
+}
+```
+
+---
+
+## 10. Tasarim Kararlari ve Gerekceler
+
+| Karar | Gerekcesi |
+|-------|-----------|
+| Platform bazi ayri index | Her platformun farkli veri yapisi var, ayri index yonetimi kolaylastirir |
+| `keyword` + `text` cift alan | Hem tam metin arama hem de gruplama/filtreleme icin |
+| 5 shard (social_posts) | Buyuk veri hacmi bekleniyor, paralel sorgu performansi |
+| ILM ile 90 gun sonra silme | Storage maliyetini dusuk tutar |
+| Geo_point alani | Lokasyon bazli trend analizi icin |
+| Multi-dil analyzer | Turkce ve Ingilizce icerik destegi |
+| Refresh interval 5s | Gercek zamanliliga yakin ama performansi korur |
+
+---
+
+## 11. Sonuc
+
+Bu veri modeli tasarimi:
+- Gercek zamanli sosyal medya analizini destekler
+- Yuksek hacimli veriyi verimli saklar
+- Trend tespiti ve duygu analizi icin optimize edilmistir
+- Olceklenebilir ve bakim kolaydir
+
+**Bir sonraki adim:** Apache Kafka ile Elasticsearch arasindaki veri pipeline'inin kurulmasi.
+
+---
+
+## Kaynaklar
+
+- Elasticsearch Resmi Dokumantasyon: https://www.elastic.co/guide
+- Elastic Stack Best Practices: https://www.elastic.co/blog
+- Index Lifecycle Management: https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html
+
