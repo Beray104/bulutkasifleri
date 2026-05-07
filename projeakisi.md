@@ -1960,3 +1960,349 @@ Bu veri modeli tasarimi:
 - Elastic Stack Best Practices: https://www.elastic.co/blog
 - Index Lifecycle Management: https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html
 
+
+
+
+
+**Bulut Kaşifleri – Apache Kafka ile Sosyal Medya Veri Toplama ve İşleme Tasarımı || AMİNE CEREN YİĞİT**
+1. Amaç ve Kapsam
+Bu tasarımın amacı, farklı sosyal medya platformlarından (Twitter/X, Instagram, Pinterest, Reddit vb.) gelen verileri gerçek zamanlı olarak toplamak, işlemek ve analiz sonuçlarını depolayarak kullanıcı arayüzünde trend ve duygu analizi çıktılarının sunulmasını sağlamaktır.
+Kafka, sistemde veri akışının merkezi omurgası olarak kullanılacaktır.
+
+2. Yüksek Seviyeli Mimari
+Sistem event-driven (olay tabanlı) dağıtık mimari ile çalışır.
+Sosyal Medya API'leri
+        |
+        v
+Ingestion Services (Spring Boot Producers)
+        |
+        v
+Kafka Cluster (Topics)
+        |
+        v
+Processing Services (Consumers)
+        |
+        v
+Storage Layer (PostgreSQL + Elasticsearch)
+        |
+        v
+Web Dashboard (UI)
+
+3. Sistem Bileşenleri
+3.1 Ingestion Service (Producer Katmanı)
+Her platformdan veri çeken servisler:
+* TwitterCollectorService
+* InstagramCollectorService
+* PinterestCollectorService
+* RedditCollectorService
+Bu servisler:
+* API’den veri çeker
+* veriyi normalize eder (standart JSON formatına çevirir)
+* Kafka topic’ine event olarak yazar
+
+3.2 Kafka Cluster
+Kafka cluster veriyi topic’ler üzerinden taşır.
+Kafka bu projede:
+* producer/consumer ayrımı sağlar
+* yüksek hacimli veri buffer görevi görür
+* consumer gecikse bile veri kaybını engeller
+
+3.3 Processing Services (Consumer Katmanı)
+Kafka’dan gelen veriyi işleyen servisler:
+* Cleaner Service (preprocessing)
+* Sentiment Analysis Service
+* Trend Calculation Service
+* Storage Writer Service
+
+3.4 Storage Layer
+* PostgreSQL: ilişkisel yapı ve ham veriler
+* Elasticsearch: arama ve dashboard için hızlı sorgu
+
+4. Kafka Topic Tasarımı
+Topic’ler veri yaşam döngüsüne göre ayrılmıştır.
+4.1 Raw Data Topics (Ham Veri)
+Topic	Açıklama
+raw.posts	Ham sosyal medya post verileri
+raw.users	Ham kullanıcı verileri (opsiyonel)
+raw.media	Post’a bağlı görsel/video metadata (opsiyonel)
+raw.errors	API hataları, parse hataları
+4.2 Processed Topics (İşlenmiş Veri)
+Topic	Açıklama
+processed.posts.cleaned	Temizlenmiş ve normalize edilmiş metin
+processed.sentiment	Duygu analizi sonuçları
+processed.trends	Trend hesaplama sonuçları
+processed.hashtags	Hashtag çıkarımı yapılmış veriler
+4.3 Storage Topics (Depolama İçin)
+Topic	Açıklama
+storage.postgres.write	PostgreSQL’e yazılacak olaylar
+storage.elasticsearch.write	Elasticsearch’e yazılacak olaylar
+4.4 Monitoring / Audit Topics (Opsiyonel)
+Topic	Açıklama
+audit.events	tüm event’lerin loglanması
+dlq.failed.events	işlenemeyen mesajların dead letter queue’su
+5. Partition Stratejisi
+Kafka throughput’u partition sayısına bağlıdır. Partition sayısı, tüketicilerin paralel çalışmasını sağlar.
+5.1 Önerilen Partition Sayıları
+Topic	Partition	Açıklama
+raw.posts	12	yüksek hacimli ana topic
+processed.posts.cleaned	12	paralel preprocessing
+processed.sentiment	12	sentiment servis ölçekleme
+processed.hashtags	12	hashtag extraction
+processed.trends	6	trend hesaplama daha düşük hacimli
+storage.postgres.write	6	db write yükü
+storage.elasticsearch.write	6	elastic write
+raw.errors	3	düşük hacimli
+Local ortam için partition sayıları 1-3’e düşürülebilir.
+
+5.2 Partition Key Seçimi
+Partition key seçimi ordering ve dağılım açısından kritiktir.
+Önerilen key:
+* platform + post_id
+Örnek:
+twitter_TW12345
+instagram_IG45678
+pinterest_PIN99999
+Bu sayede aynı post’a ait event’ler aynı partition’da kalır ve ordering problemi azalır.
+
+6. Replication ve Fault Tolerance
+6.1 Replication Factor
+Production ortamı için:
+* replication.factor = 3
+Local test için:
+* replication.factor = 1
+Bu yapı broker çökse bile verinin kaybolmasını engeller.
+
+7. Mesaj Formatı Tasarımı (Event Schema)
+Sistemde tüm mesajlar standart event formatında JSON olarak taşınacaktır.
+Her event şunları içermelidir:
+* event_id (UUID)
+* event_type
+* platform
+* timestamp bilgileri
+* payload (içerik)
+
+7.1 Raw Post Event (raw.posts)
+{
+  "event_id": "3f2e9c7a-1111-4444-8888-999999999999",
+  "event_type": "RAW_POST",
+  "platform": "instagram",
+  "post_id": "IG_123456",
+  "user": {
+    "user_id": "IG_USER_99",
+    "username": "example_user",
+    "followers_count": 1500
+  },
+  "content": "Bugün çok güzel bir gün #bahar #mutluluk",
+  "hashtags": ["bahar", "mutluluk"],
+  "language": "tr",
+  "created_at": "2026-05-07T10:15:00Z",
+  "collected_at": "2026-05-07T10:15:05Z",
+  "source": "api"
+}
+
+7.2 Cleaned Post Event (processed.posts.cleaned)
+{
+  "event_id": "88b7f121-aaaa-bbbb-cccc-123456789012",
+  "event_type": "CLEANED_POST",
+  "platform": "instagram",
+  "post_id": "IG_123456",
+  "clean_content": "bugun cok guzel bir gun bahar mutluluk",
+  "tokens": ["bugun", "cok", "guzel", "bir", "gun", "bahar", "mutluluk"],
+  "hashtags": ["bahar", "mutluluk"],
+  "processed_at": "2026-05-07T10:15:07Z"
+}
+
+7.3 Sentiment Result Event (processed.sentiment)
+{
+  "event_id": "9aa9bbcc-3333-4444-5555-666666666666",
+  "event_type": "SENTIMENT_RESULT",
+  "platform": "instagram",
+  "post_id": "IG_123456",
+  "sentiment": "positive",
+  "score": 0.87,
+  "model_version": "v1.0",
+  "analyzed_at": "2026-05-07T10:15:10Z"
+}
+
+7.4 Hashtag Extraction Event (processed.hashtags)
+{
+  "event_id": "55554444-2222-1111-aaaa-bbbbbbbbbbbb",
+  "event_type": "HASHTAG_EXTRACTED",
+  "platform": "instagram",
+  "post_id": "IG_123456",
+  "hashtags": ["bahar", "mutluluk"],
+  "extracted_at": "2026-05-07T10:15:08Z"
+}
+
+7.5 Trend Result Event (processed.trends)
+{
+  "event_id": "12121212-3434-5656-7878-909090909090",
+  "event_type": "TREND_RESULT",
+  "platform": "instagram",
+  "time_window": "5m",
+  "hashtags": [
+    { "tag": "bahar", "count": 120 },
+    { "tag": "mutluluk", "count": 85 }
+  ],
+  "generated_at": "2026-05-07T10:20:00Z"
+}
+
+7.6 Storage Event (storage.postgres.write)
+{
+  "event_id": "99999999-8888-7777-6666-555555555555",
+  "event_type": "DB_WRITE",
+  "target": "postgres",
+  "table": "posts",
+  "platform": "instagram",
+  "post_id": "IG_123456",
+  "data": {
+    "content": "Bugün çok güzel bir gün #bahar #mutluluk",
+    "created_at": "2026-05-07T10:15:00Z",
+    "language": "tr"
+  },
+  "written_at": "2026-05-07T10:15:15Z"
+}
+
+8. Consumer Group Tasarımı
+Kafka consumer group yapısı sayesinde her işleme adımı bağımsız ölçeklenebilir.
+Consumer Group	Topic	Görev
+cleaner-group	raw.posts	preprocessing
+hashtag-group	raw.posts	hashtag extraction
+sentiment-group	processed.posts.cleaned	sentiment analizi
+trend-group	processed.hashtags	trend hesaplama
+storage-postgres-group	storage.postgres.write	PostgreSQL yazma
+storage-elastic-group	storage.elasticsearch.write	Elasticsearch yazma
+dlq-handler-group	dlq.failed.events	hata yönetimi
+9. Veri Akışı Detayı (Pipeline)
+Aşağıdaki akış sistemin gerçek zamanlı işleme sürecini gösterir.
+raw.posts
+   |
+   +--> cleaner-group --> processed.posts.cleaned
+   |                         |
+   |                         +--> sentiment-group --> processed.sentiment
+   |
+   +--> hashtag-group --> processed.hashtags
+                             |
+                             +--> trend-group --> processed.trends
+                                         |
+                                         v
+                             storage.elasticsearch.write
+                             storage.postgres.write
+
+10. Güvenilirlik (Reliability) Çözümleri
+10.1 Producer Güvenilirliği
+Producer ayarları:
+* acks=all
+* enable.idempotence=true
+* retries=5
+* max.in.flight.requests.per.connection=5
+Amaç:
+* mesaj kaybını azaltmak
+* duplicate üretimini minimize etmek
+
+10.2 Consumer Offset Yönetimi
+Consumer tarafında:
+* auto commit kapalı olmalı
+* işlem başarılı olunca manuel commit yapılmalı
+Bu sayede sistem çökse bile işlenmemiş mesaj tekrar okunur.
+
+10.3 Dead Letter Queue (DLQ)
+İşlenemeyen mesajlar DLQ’ye aktarılır:
+* dlq.failed.events
+DLQ’ye düşme sebepleri:
+* JSON parse error
+* DB insert error
+* model failure
+* eksik alan
+
+10.4 Duplicate Yönetimi (Idempotency)
+At-least-once delivery garantisi nedeniyle duplicate mesaj gelebilir.
+Çözüm:
+* PostgreSQL’de (platform, post_id) unique constraint
+* consumer tarafında “processed flag” kontrolü
+
+10.5 Retry + Backoff Mekanizması
+DB yazma veya servis hatasında:
+* 3 kez retry
+* exponential backoff
+* başarısız olursa DLQ
+
+11. Ölçeklenebilirlik (Scalability) Çözümleri
+11.1 Partition Scaling
+Veri arttığında partition sayısı artırılabilir.
+Örnek:
+* raw.posts 12 → 24 partition
+
+11.2 Consumer Scaling
+Consumer group içindeki instance sayısı artırılarak yatay ölçekleme yapılır.
+Örnek:
+* sentiment-group 3 instance → 12 instance
+
+11.3 Backpressure Yönetimi
+Kafka buffer görevi görür:
+* consumer yavaşlarsa mesajlar Kafka’da bekler
+* sistem çökmeden veri akışı devam eder
+
+12. İzleme ve Gözlemlenebilirlik (Monitoring)
+Kafka performansı şu metriklerle izlenmelidir:
+* Consumer Lag
+* Messages per second
+* Error Rate
+* Broker Disk Usage
+* Partition Load Distribution
+Önerilen araçlar:
+* Prometheus + Grafana
+* Kafka UI / Kafdrop
+
+13. Güvenlik (Security)
+Kafka production ortamında şu önlemler önerilir:
+* SSL/TLS encryption
+* SASL authentication
+* ACL permissions
+* API token bilgilerini secrets manager ile yönetme
+
+14. Teknik Diyagramlar
+14.1 High Level Architecture Diagram
+[Twitter API]   [Instagram API]   [Pinterest API]   [Reddit API]
+     |               |                |                |
+     v               v                v                v
+      ----------- Ingestion Producers (Spring Boot) ----------
+                             |
+                             v
+                     Kafka Cluster (Topics)
+                             |
+            +----------------+----------------+
+            |                                 |
+            v                                 v
+     Stream Processing                    Storage Writers
+ (Spark / Kafka Streams)          (Postgres + Elasticsearch)
+            |                                 |
+            v                                 v
+   Sentiment / Trends                  Dashboard Query Layer
+                             |
+                             v
+                       Web Dashboard UI
+
+14.2 Topic Bazlı İş Akışı
+raw.posts
+   |
+   v
+processed.posts.cleaned
+   |
+   +--> processed.sentiment
+   |
+   +--> processed.hashtags --> processed.trends
+   |
+   v
+storage.postgres.write
+storage.elasticsearch.write
+
+15. Sonuç
+Bu Kafka tasarımı sayesinde sistem:
+* farklı platformlardan gelen veriyi tek formatta işleyebilir,
+* yüksek hacimli veri akışını kayıpsız yönetebilir,
+* consumer group + partition yapısı ile yatay ölçeklenebilir,
+* DLQ ve retry mekanizması ile hata toleranslı çalışabilir,
+* gerçek zamanlı trend ve duygu analizi sonuçlarını üretip depolayabilir.
+Kafka, Bulut Kaşifleri projesinin veri akışını sağlayan ana dağıtık omurga olarak konumlandırılmıştır.
+
