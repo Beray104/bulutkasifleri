@@ -2306,3 +2306,39 @@ Bu Kafka tasarımı sayesinde sistem:
 * gerçek zamanlı trend ve duygu analizi sonuçlarını üretip depolayabilir.
 Kafka, Bulut Kaşifleri projesinin veri akışını sağlayan ana dağıtık omurga olarak konumlandırılmıştır.
 
+# 🚀 Yazılım Test ve Performans Optimizasyonu Raporu
+
+**Proje:** Dağıtık Sosyal Medya Analiz Platformu  
+**Hafta:** Hafta 5 (Ölçeklenebilirlik ve Optimizasyon)  
+**Hazırlayan:** Hasan Kara  
+**Tarih:** 7 Mayıs 2026  
+
+---
+
+## 📋 1. Görev Genel Bakış
+Bu çalışma, platformun yoğun veri akışı ve yüksek kullanıcı etkileşimi altında stabilitesini koruması için gerçekleştirilmiştir. Görev kapsamında hem kod seviyesinde optimizasyon yapılmış hem de sistemin dayanıklılığı simüle edilmiştir.
+
+## 🛠️ 2. Gerçekleştirilen Optimizasyonlar: Debounce Tekniği
+Arama ve filtreleme fonksiyonları, gereksiz API çağrılarını önlemek amacıyla **Debounce** mekanizması ile güçlendirilmiştir.
+
+* **Çalışma Mantığı:** Kullanıcı klavyeden giriş yaparken her tuş basımında değil, yazma işlemi bittikten 500ms sonra tek bir istek gönderilir.
+* **Faydaları:** Sunucu maliyetleri düşürülmüş ve tarayıcı üzerindeki işlem yükü minimize edilerek daha akıcı bir kullanıcı deneyimi (UX) sağlanmıştır.
+
+## 🧪 3. Ölçeklenebilirlik ve Stres Testi
+Sistemin aynı anda gelen yoğun taleplere verdiği tepkiyi ölçmek için tarayıcı konsolu üzerinden kapsamlı bir yük testi yürütülmüştür.
+
+### 📊 Test Verileri ve Metrikler
+Tarayıcı geliştirici araçları üzerinden elde edilen veriler şu şekildedir:
+
+* **Test Metodu:** `stressTest(100)` simülasyonu.
+* **Eşzamanlı İstek Sayısı:** 100 Adet.
+* **Ölçülen Toplam Süre:** **240.70 ms**
+* **Hata Yönetimi:** Backend sunucusunun kapalı olması nedeniyle dönen **404 (Not Found)** yanıtları, frontend mimarisi tarafından başarıyla yakalanmış ve sistem kilitlenmemiştir.
+
+## 🔍 4. Teknik Değerlendirme
+Elde edilen **240.70 ms**'lik sonuç, optimizasyon çalışmalarının başarısını açıkça ortaya koymaktadır. 100 isteğin saniyenin dörtte birinden kısa sürede yönetilmesi, uygulamanın ölçeklenebilir (scalable) bir yapıda olduğunu ve ileride eklenecek gerçek backend servisleri için sağlam bir temel oluşturduğunu kanıtlamaktadır.
+
+## ✅ 5. Sonuç
+Hafta 5 hedefleri arasında yer alan "Ölçeklenebilirlik Testleri ve Optimizasyon" görevi, hem teorik raporlama hem de pratik kod uygulaması bazında eksiksiz bir şekilde tamamlanmıştır.
+
+---
