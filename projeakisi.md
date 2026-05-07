@@ -145,7 +145,132 @@ Sistem Yöneticisi
 Bulut Kaşifleri projesi, sosyal medya verilerinin gerçek zamanlı olarak analiz edilmesini sağlayan dağıtık bir veri analiz platformu geliştirmeyi amaçlamaktadır. Proje, büyük veri teknolojilerinin kullanıldığı ölçeklenebilir bir sistem mimarisi üzerine kurulacaktır.
 Bu sistem sayesinde kullanıcılar sosyal medya trendlerini, kullanıcı duygu analizlerini ve içerik eğilimlerini analiz edebilecek ve bu verilerden anlamlı çıkarımlar elde edebilecektir.
 
-
+**Paydaş Toplantısı Notları – Proje Hedefleri, Kapsam ve Beklentilerin Netleştirilmesi || AMİNE CEREN YİĞİT**
+1. Toplantı Bilgileri
+Toplantı Konusu: Bulut Kaşifleri Projesi Hedef/Kapsam Netleştirme
+Tarih: 2026-05-07
+Süre: 45-60 dakika
+Toplantı Türü: Paydaş Görüşmesi ve Proje Beklenti Analizi
+Toplantı Amacı: Projenin hedeflerini, kapsamını ve başarı kriterlerini netleştirmek; öncelikleri belirlemek
+2. Katılımcılar (Paydaşlar)
+Ürün Sahibi (Product Owner / Yönetici)
+Proje Takımı (5 kişi)
+Backend/Veri Ekibi Temsilcisi
+UI/UX Temsilcisi
+Veri Analitiği / AI Temsilcisi
+DevOps/Cloud Temsilcisi (varsa)
+Not: Katılımcı isimleri ekip içinde belirlendikten sonra güncellenecektir.
+3. Projenin Netleştirilen Ana Hedefleri
+Paydaşlarla yapılan görüşmede projenin temel hedefleri aşağıdaki şekilde kesinleştirilmiştir:
+ 3.1 Ana Hedef
+Sosyal medya platformlarından alınan verilerin gerçek zamanlı olarak işlenmesiyle:
+trend konuların tespit edilmesi
+duygu analizi yapılması
+sonuçların web tabanlı bir dashboard üzerinde görselleştirilmesi
+ 3.2 Sistemden Beklenen Çıktılar
+Trend Hashtag / Konu listesi
+Duygu analizi (pozitif/negatif/nötr)
+Platform bazlı karşılaştırmalar
+Zaman aralığına göre değişim analizi (grafik)
+Arama yapılabilen post arşivi
+4. Proje Kapsamı (Scope)
+ 4.1 Kapsam Dahilinde
+Paydaşlar tarafından onaylanan kapsam maddeleri:
+Sosyal medya verilerinin API üzerinden toplanması
+Verinin Kafka ile stream edilmesi
+Ön işleme (cleaning/tokenization)
+Sentiment analizi
+Trend analizi
+PostgreSQL üzerinde ilişkisel veri tutma
+Elasticsearch ile hızlı arama desteği
+Web dashboard geliştirilmesi
+Loglama ve temel monitoring
+ 4.2 Kapsam Dışında (Şimdilik)
+Paydaşlar tarafından şu an için kapsam dışı bırakılan veya sonraya ertelenen maddeler:
+Tüm sosyal medya platformlarının tam entegrasyonu
+Gerçek zamanlı video/görüntü işleme (YOLO vb.)
+Gelişmiş deep learning model eğitimi (custom model training)
+Mobil uygulama geliştirme
+Tam otomatik cloud autoscaling (ileri seviye DevOps)
+5. Paydaşların Öncelikleri (Priority List)
+Paydaşlar tarafından projenin öncelikleri şu sırada belirlenmiştir:
+ 5.1 Öncelik 1 (Zorunlu)
+Çalışan veri akışı: API → Kafka → İşleme → DB/Elasticsearch
+Trend ve sentiment sonuçlarının üretilebilmesi
+Dashboard üzerinden görüntülenmesi
+ 5.2 Öncelik 2 (Önemli)
+PostgreSQL indeksleme ve performans optimizasyonu
+Elasticsearch ile keyword arama
+UI üzerinde filtreleme (platform, tarih aralığı)
+ 5.3 Öncelik 3 (Geliştirilebilir)
+Daha fazla sosyal medya kaynağı eklenmesi
+Daha iyi model doğruluğu
+Gelişmiş raporlama (haftalık/aylık rapor export)
+6. Başarı Kriterleri (Definition of Success)
+Paydaşlar projenin başarılı sayılması için şu kriterleri belirlemiştir:
+Sistem çalışır durumda olmalı (uçtan uca pipeline)
+Gerçek zamanlı veya near real-time veri işlenebilmeli
+Trend ve sentiment çıktıları dashboard’da görüntülenebilmeli
+Veritabanı sorguları optimize edilmiş olmalı
+Temel testler (API test + DB test) tamamlanmış olmalı
+Dokümantasyon ve mimari net şekilde açıklanmış olmalı
+7. Kritik Riskler ve Paydaşların Vurguladığı Noktalar
+Paydaşların özellikle kritik gördüğü noktalar:
+ 7.1 Veri Kaynağı Erişim Riski
+Instagram/Pinterest gibi platformlarda API limitleri veya erişim sorunları yaşanabilir.
+Bu yüzden:
+API erişimi olmayan durumlarda mock dataset kullanımı kabul edilmiştir.
+ 7.2 Pipeline Stabilitesi
+Kafka consumer hatalarında sistemin tamamen durmaması istenmektedir.
+Bu nedenle:
+Dead Letter Queue (DLQ)
+Retry mekanizması
+offset yönetimi
+zorunlu kabul edilmiştir.
+ 7.3 Performans
+Post sayısı arttığında sistemin cevap süresinin aşırı artmaması beklenmektedir.
+Bu yüzden:
+indeksleme stratejileri
+pagination zorunluluğu
+full-text search önerisi
+öncelikli hale getirilmiştir.
+ 7.4 Dokümantasyon Tutarlılığı
+Paydaşlar, dokümanların birbiriyle çelişmemesini özellikle istemiştir.
+Bu yüzden:
+tek bir ana doküman (projeakisi.md) referans kabul edilmiştir.
+8. Beklentiler ve Netleştirilen Çalışma Şekli
+ 8.1 Takım İçinde İletişim
+Haftalık görev dağılımı yapılacak
+Her görev sonunda GitHub commit ve doküman güncellemesi zorunlu olacak
+ 8.2 Versiyon Kontrol Beklentisi
+Branch stratejisi: main + dev + feature/*
+Merge işlemleri PR üzerinden yapılmalı
+Commit mesajları anlamlı olmalı
+ 8.3 Görev Takibi
+Görevler GitHub Issues veya sistemin AI görev modülü üzerinden takip edilecek
+Haftalık raporlar commit üzerinden ölçülecek
+9. Alınan Kararlar (Meeting Decisions)
+Toplantı sonunda alınan kararlar:
+Öncelik: çalışır pipeline (Kafka tabanlı) kurulmasıdır.
+İlk etapta platform sayısı sınırlı tutulabilir.
+API erişim sorunu olan platformlarda mock veri kabul edilmiştir.
+Trend + sentiment çıktıları dashboard üzerinde gösterilmelidir.
+PostgreSQL + Elasticsearch birlikte kullanılacaktır.
+Dokümantasyon çelişkileri düzenli olarak kontrol edilecektir.
+10. Aksiyon Maddeleri (Action Items)
+No	Aksiyon	Sorumlu	Durum
+1-Kafka topic/partition tasarımını finalize etmek	Backend/Veri	Yapılacak
+2-DB indeksleme ve query optimizasyon raporu	DB Sorumlusu	Yapılacak
+3-API endpoint listesini user story’lere bağlamak	Backend	Yapılacak
+4-Dashboard wireframe + ekran taslağı	UI/UX	Yapılacak
+5-Veri kaynaklarının erişilebilirliğini doğrulamak	Ingestion	Yapılacak
+11. Takım ile Paylaşım
+Bu toplantı çıktıları:
+GitHub repository dokümantasyonuna eklenmiştir.
+Tüm takım üyeleriyle paylaşılmıştır.
+Haftalık sprint planı bu kararlar doğrultusunda güncellenecektir.
+12. Sonuç
+Paydaş toplantısı sonucunda projenin hedefleri, kapsamı ve başarı kriterleri netleştirilmiştir. En kritik öncelik uçtan uca çalışan bir gerçek zamanlı veri akışı kurulmasıdır. Performans, veri erişim riskleri ve dokümantasyon tutarlılığı paydaşların kritik gördüğü başlıklardır.
 
 
 # ☁️ BULUT TEKNOLOJİLERİ ARAŞTIRMA VE KARŞILAŞTIRMA RAPORU
