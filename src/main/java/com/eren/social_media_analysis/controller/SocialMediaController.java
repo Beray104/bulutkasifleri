@@ -1,5 +1,6 @@
 package com.eren.social_media_analysis.controller;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import com.eren.social_media_analysis.dto.SentimentSummaryResponse;
 import com.eren.social_media_analysis.dto.SocialMediaMessage;
 import com.eren.social_media_analysis.dto.SocialMediaPostResponse;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "https://yourdomain.com")
 @RequestMapping("/api/v1")
 public class SocialMediaController {
 
@@ -54,3 +56,5 @@ public class SocialMediaController {
 		return socialMediaService.getRecentPosts();
 	}
 }
+
+
