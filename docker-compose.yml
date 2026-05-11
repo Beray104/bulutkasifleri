@@ -5,7 +5,7 @@ services:
       - "1433:1433"
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-StrongPassw0rd!}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
     volumes:
       - mssql_data:/var/opt/mssql
 
@@ -15,8 +15,8 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_DB: social_media_analysis
-      POSTGRES_USER: social
-      POSTGRES_PASSWORD: social
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -46,7 +46,7 @@ services:
       - "9200:9200"
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
+      - xpack.security.enabled=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
 
 volumes:
