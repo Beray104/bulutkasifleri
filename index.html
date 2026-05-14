@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analiz Paneli - Performans Testi</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h2>Sosyal Medya Analiz Platformu</h2>
+        <div class="search-area">
+            <label for="searchInput" class="visually-hidden">Anahtar kelime</label>
+            <input type="text" id="searchInput" placeholder="Anahtar kelime girin..." aria-label="Anahtar kelime">
+            <button id="testBtn">Performans Testi Yap</button>
+        </div>
+        <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
+    </div>
+    
+    <div class="dashboard">
+        <div class="card">
+            <h3>Duygu Analizi Dağılımı</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+        <div class="card">
+            <h3>Trend Akışı</h3>
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulut Kaşifleri — Dağıtık Mimari</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 2rem;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(124,58,237,0.05) 0%, transparent 50%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+  }
+
+  header p {
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+
+  .diagram {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Kaynak katmanı */
+  .sources {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0;
+  }
+
+  .source-card {
+    background: linear-gradient(135deg, #1a2744, #0f1a2e);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Ok */
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.3rem 0;
+    gap: 2px;
+  }
+
+  .arrow-line {
+    width: 2px;
+    height: 30px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+
+  .arrow-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .arrow-tip {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--accent);
+  }
+
+  /* Katman kartları */
+  .layer {
+    width: 100%;
+    max-width: 700px;
+    border-radius: 14px;
+    padding: 1.25rem 1.75rem;
+    position: relative;
+    border: 1px solid;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .layer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .layer-title {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+  }
+
+  .layer-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .layer-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .layer-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  /* Renk temaları */
+  .layer-api {
+    background: linear-gradient(135deg, #0f2027, #1a3040);
+    border-color: var(--accent);
+  }
+  .layer-api .layer-title { color: var(--accent); }
+  .layer-api .layer-badge { background: rgba(0,212,255,0.15); color: var(--accent); border: 1px solid var(--accent); }
+
+  .layer-kafka {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-color: var(--yellow);
+  }
+  .layer-kafka .layer-title { color: var(--yellow); }
+  .layer-kafka .layer-badge { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  .layer-spark {
+    background: linear-gradient(135deg, #1a0a00, #2d1500);
+    border-color: var(--accent2);
+  }
+  .layer-spark .layer-title { color: var(--accent2); }
+  .layer-spark .layer-badge { background: rgba(255,107,53,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
+
+  /* Partition gösterimi */
+  .partitions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .partition {
+    flex: 1;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 6px;
+    padding: 0.4rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--yellow);
+  }
+
+  /* Spark adımları */
+  .steps {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+
+  .step {
+    background: rgba(255,107,53,0.08);
+    border: 1px solid rgba(255,107,53,0.25);
+    border-radius: 6px;
+    padding: 0.25rem 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent2);
+  }
+
+  /* Alt katmanlar (ES + PG yan yana) */
+  .storage-row {
+    display: flex;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .storage-card {
+    flex: 1;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid;
+  }
+
+  .storage-elastic {
+    background: linear-gradient(135deg, #0a1a1a, #001f1f);
+    border-color: var(--green);
+  }
+  .storage-elastic .layer-title { color: var(--green); }
+
+  .storage-postgres {
+    background: linear-gradient(135deg, #0a0a1a, #100a2a);
+    border-color: var(--accent3);
+  }
+  .storage-postgres .layer-title { color: var(--accent3); }
+
+  .index-list {
+    margin-top: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+  }
+
+  .index-list li {
+    list-style: none;
+    padding: 0.2rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: var(--muted);
+  }
+
+  .index-list li:before {
+    content: '→ ';
+    color: var(--green);
+  }
+
+  .table-list li:before {
+    color: var(--accent3) !important;
+  }
+
+  /* Çift ok (Spark → ES ve PG) */
+  .fork-arrow {
+    display: flex;
+    width: 100%;
+    max-width: 700px;
+    justify-content: center;
+    position: relative;
+    height: 40px;
+  }
+
+  .fork-arrow svg {
+    width: 100%;
+    height: 40px;
+  }
+
+  /* Metrik kartları */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 700px;
+    margin-top: 2rem;
+  }
+
+  .metric {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .metric-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+  }
+
+  .metric-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  /* Animasyon */
+  .layer, .storage-card, .source-card {
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .layer:nth-child(1) { animation-delay: 0.1s; }
+  .layer:nth-child(2) { animation-delay: 0.2s; }
+  .layer:nth-child(3) { animation-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Bulut Kaşifleri — Dağıtık Veri İşleme Mimarisi</h1>
+  <p>Hafta 1 | Beray Akar | 10.05.2026 | Apache Kafka + Spark + Elasticsearch</p>
+</header>
+
+<div class="diagram">
+
+  <!-- Kaynaklar -->
+  <div class="sources">
+    <div class="source-card">🐦 Twitter API</div>
+    <div class="source-card">📸 Instagram API</div>
+    <div class="source-card">🤖 Reddit API</div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line"></div>
+    <div class="arrow-label">HTTP POST /api/v1/social-media-posts</div>
+    <div class="arrow-tip"></div>
+  </div>
+
+  <!-- Katman 1: Spring Boot API -->
+  <div class="layer layer-api">
+    <div class="layer-title">Katman 1 — Veri Alım</div>
+    <div class="layer-name">Spring Boot REST API</div>
+    <div class="layer-detail">SocialMediaController → KafkaProducer → social-media-topic</div>
+    <div class="layer-badge">:8080</div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line"></div>
+    <div class="arrow-label">KafkaProducer.send()</div>
+    <div class="arrow-tip"></div>
+  </div>
+
+  <!-- Katman 2: Kafka -->
+  <div class="layer layer-kafka">
+    <div class="layer-title">Katman 2 — Mesaj Kuyruğu</div>
+    <div class="layer-name">Apache Kafka 7.5.0</div>
+    <div class="layer-detail">Zookeeper:2181 | Broker:9092 | Topic: social-media-topic</div>
+    <div class="layer-badge">:9092</div>
+    <div class="partitions">
+      <div class="partition">Partition-0<br>Twitter</div>
+      <div class="partition">Partition-1<br>Instagram</div>
+      <div class="partition">Partition-2<br>Reddit</div>
+    </div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line"></div>
+    <div class="arrow-label">Kafka Consumer (mikro-batch)</div>
+    <div class="arrow-tip"></div>
+  </div>
+
+  <!-- Katman 3: Spark -->
+  <div class="layer layer-spark">
+    <div class="layer-title">Katman 3 — Stream İşleme</div>
+    <div class="layer-name">Apache Spark Structured Streaming</div>
+    <div class="layer-detail">SparkStructuredStreamingJob — paralel işleme (3 task / 3 partition)</div>
+    <div class="layer-badge">Spark</div>
+    <div class="steps">
+      <span class="step">JSON Parse</span>
+      <span class="step">Metin Temizleme</span>
+      <span class="step">Tokenization</span>
+      <span class="step">Hashtag Çıkarma</span>
+      <span class="step">Duygu Analizi</span>
+      <span class="step">Normalize Score</span>
+    </div>
+  </div>
+
+  <!-- Fork oku -->
+  <div class="fork-arrow">
+    <svg viewBox="0 0 700 40" preserveAspectRatio="none">
+      <line x1="350" y1="0" x2="350" y2="20" stroke="#10b981" stroke-width="2"/>
+      <line x1="175" y1="20" x2="525" y2="20" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <line x1="175" y1="20" x2="175" y2="40" stroke="#10b981" stroke-width="2"/>
+      <line x1="525" y1="20" x2="525" y2="40" stroke="#7c3aed" stroke-width="2"/>
+      <polygon points="170,36 180,36 175,42" fill="#10b981"/>
+      <polygon points="520,36 530,36 525,42" fill="#7c3aed"/>
+    </svg>
+  </div>
+
+  <!-- Katman 4: Depolama -->
+  <div class="storage-row">
+    <div class="storage-card storage-elastic">
+      <div class="layer-title">Katman 4A — Arama & Analitik</div>
+      <div class="layer-name" style="font-size:1rem">Elasticsearch 8.15.3</div>
+      <ul class="index-list">
+        <li>social_media_posts (SocialMediaPostDocument)</li>
+        <li>social_media_trends (TrendDocument)</li>
+      </ul>
+    </div>
+    <div class="storage-card storage-postgres">
+      <div class="layer-title">Katman 4B — İlişkisel DB</div>
+      <div class="layer-name" style="font-size:1rem">PostgreSQL 16</div>
+      <ul class="index-list table-list">
+        <li>user_accounts</li>
+        <li>api_keys (SHA-256)</li>
+        <li>tracked_keywords</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Metrikler -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-value">50K</div>
+      <div class="metric-label">msg/sn Kafka</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">&lt;500ms</div>
+      <div class="metric-label">Spark Gecikme</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">&lt;50ms</div>
+      <div class="metric-label">ES Sorgu</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">&lt;100ms</div>
+      <div class="metric-label">API p99</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Bulut Kaşifleri © 2026 — Hafta 1 Mimari Tasarım | Beray Akar
+</footer>
+
+</body>
+</html>
