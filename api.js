@@ -1,136 +1,246 @@
-// --- 1. KISIM: GRAFİKLERİ ÇİZ (Chart.js) ---
-const pieCtx = document.getElementById('pieChart').getContext('2d');
-const lineCtx = document.getElementById('lineChart').getContext('2d');
+// ═══════════════════════════════════════════════════════════════
+// Sosyal Medya Analiz Platformu — Dashboard API & Grafik Mantığı
+// ═══════════════════════════════════════════════════════════════
 
-const pieChart = new Chart(pieCtx, {
-    type: 'pie',
-    data: {
-        labels: ['Pozitif', 'Negatif', 'Nötr'],
-        datasets: [{ data: [45, 25, 30], backgroundColor: ['#28a745', '#dc3545', '#ffc107'] }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-});
+const API_BASE = '/api/v1';
 
-const lineChart = new Chart(lineCtx, {
-    type: 'line',
-    data: {
-        labels: ['10:00', '10:05', '10:10', '10:15', '10:20'],
-        datasets: [{ label: 'Aktif Veri Akışı', data: [20, 60, 45, 120, 80], borderColor: '#007bff', fill: false }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-});
+// ── DOM Referansları ─────────────────────────────────────────
+const searchInput     = document.getElementById('searchInput');
+const searchBtn       = document.getElementById('searchBtn');
+const statusEl        = document.getElementById('statusMessage');
+const menuToggle      = document.getElementById('menuToggle');
+const sidebar         = document.getElementById('sidebar');
 
-// --- 2. KISIM: API TEST SENARYOLARI ---
-const searchInput = document.getElementById('searchInput');
-const testBtn = document.getElementById('testBtn');
-const statusEl = document.getElementById('statusMessage');
+// Özet kartları
+const totalPostsEl    = document.getElementById('totalPosts');
+const positiveRateEl  = document.getElementById('positiveRate');
+const negativeRateEl  = document.getElementById('negativeRate');
+const trendCountEl    = document.getElementById('trendCount');
 
+// ── Sidebar Toggle (Mobil) ───────────────────────────────────
+if (menuToggle) {
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+    });
+}
+
+// ── Durum Mesajı ─────────────────────────────────────────────
 function setStatus(message, type) {
     statusEl.textContent = message;
-    statusEl.className = type ? `status ${type}` : 'status';
+    statusEl.className = type ? `status-msg ${type}` : 'status-msg';
 }
 
-async function performansTestiCalistir() {
-    const arananKelime = searchInput.value.trim();
+// ── Chart.js Yapılandırma ────────────────────────────────────
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "'Inter', sans-serif";
 
-    if (!arananKelime) {
-        setStatus("Lütfen test için bir anahtar kelime girin.", "error");
-        searchInput.focus();
-        return;
+// 1. Duygu Analizi Pie Chart
+const sentimentPieChart = new Chart(
+    document.getElementById('sentimentPieChart').getContext('2d'),
+    {
+        type: 'doughnut',
+        data: {
+            labels: ['Pozitif', 'Negatif', 'Nötr'],
+            datasets: [{
+                data: [45, 25, 30],
+                backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
+                borderColor: '#1e293b',
+                borderWidth: 3,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+            },
+            cutout: '60%'
+        }
     }
+);
 
-    testBtn.disabled = true;
-    testBtn.textContent = "Test çalışıyor...";
-    setStatus(`'${arananKelime}' için API isteği gönderiliyor...`, null);
-    console.log(`TEST BAŞLADI: '${arananKelime}' kelimesi için API'ye istek atılıyor...`);
+// 2. Trend Akışı Line Chart
+const trendLineChart = new Chart(
+    document.getElementById('trendLineChart').getContext('2d'),
+    {
+        type: 'line',
+        data: {
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'],
+            datasets: [
+                {
+                    label: 'Pozitif',
+                    data: [20, 35, 60, 80, 95, 70, 55],
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34,197,94,0.1)',
+                    fill: true, tension: 0.4, pointRadius: 3
+                },
+                {
+                    label: 'Negatif',
+                    data: [15, 20, 30, 25, 40, 35, 28],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239,68,68,0.1)',
+                    fill: true, tension: 0.4, pointRadius: 3
+                },
+                {
+                    label: 'Nötr',
+                    data: [30, 25, 40, 50, 45, 38, 42],
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245,158,11,0.1)',
+                    fill: true, tension: 0.4, pointRadius: 3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 12 } } },
+            scales: {
+                x: { grid: { color: 'rgba(51,65,85,0.5)' } },
+                y: { grid: { color: 'rgba(51,65,85,0.5)' }, beginAtZero: true }
+            }
+        }
+    }
+);
 
+// 3. Platform Dağılımı Bar Chart
+const platformBarChart = new Chart(
+    document.getElementById('platformBarChart').getContext('2d'),
+    {
+        type: 'bar',
+        data: {
+            labels: ['Twitter', 'Facebook', 'Instagram', 'Reddit'],
+            datasets: [{
+                label: 'Post Sayısı',
+                data: [420, 280, 350, 150],
+                backgroundColor: ['#6366f1', '#3b82f6', '#a855f7', '#f97316'],
+                borderRadius: 6,
+                barThickness: 36
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: 'rgba(51,65,85,0.5)' }, beginAtZero: true }
+            }
+        }
+    }
+);
+
+// ── API Çağrıları ────────────────────────────────────────────
+
+// Duygu analizi dağılımını backend'den çek
+async function fetchSentiments() {
     try {
-        // SENARYO 3: Veri gönderme testi
-        console.log("Senaryo 3: /api/v1/collector/task adresine POST isteği deneniyor...");
-        const response = await fetch('/api/v1/collector/task', {
+        const res = await fetch(`${API_BASE}/sentiments`);
+        if (!res.ok) throw new Error('Backend kapalı');
+        const data = await res.json();
+
+        const map = { POSITIVE: 0, NEGATIVE: 0, NEUTRAL: 0 };
+        data.forEach(item => { map[item.label] = item.count; });
+        const total = map.POSITIVE + map.NEGATIVE + map.NEUTRAL;
+
+        sentimentPieChart.data.datasets[0].data = [map.POSITIVE, map.NEGATIVE, map.NEUTRAL];
+        sentimentPieChart.update();
+
+        totalPostsEl.textContent = total.toLocaleString('tr-TR');
+        positiveRateEl.textContent = total > 0 ? `%${((map.POSITIVE / total) * 100).toFixed(1)}` : '—';
+        negativeRateEl.textContent = total > 0 ? `%${((map.NEGATIVE / total) * 100).toFixed(1)}` : '—';
+
+        setStatus('Duygu analizi verileri başarıyla yüklendi.', 'success');
+    } catch (e) {
+        console.warn('Sentiment API erişilemedi, simülasyon verisi kullanılıyor:', e.message);
+        totalPostsEl.textContent = '1.200';
+        positiveRateEl.textContent = '%45';
+        negativeRateEl.textContent = '%25';
+    }
+}
+
+// Trend verilerini backend'den çek
+async function fetchTrends() {
+    try {
+        const res = await fetch(`${API_BASE}/trends`);
+        if (!res.ok) throw new Error('Backend kapalı');
+        const data = await res.json();
+        trendCountEl.textContent = data.length;
+    } catch (e) {
+        console.warn('Trends API erişilemedi, simülasyon verisi kullanılıyor:', e.message);
+        trendCountEl.textContent = '5';
+    }
+}
+
+// Son postları backend'den çek ve tabloya yaz
+async function fetchRecentPosts() {
+    try {
+        const res = await fetch(`${API_BASE}/social-media-posts`);
+        if (!res.ok) throw new Error('Backend kapalı');
+        const posts = await res.json();
+        renderPostsTable(posts);
+    } catch (e) {
+        console.warn('Posts API erişilemedi, simülasyon verisi kullanılıyor:', e.message);
+        renderPostsTable(SAMPLE_POSTS);
+    }
+}
+
+// ── Tablo Render ─────────────────────────────────────────────
+function renderPostsTable(posts) {
+    const tbody = document.getElementById('postsBody');
+    tbody.innerHTML = '';
+    posts.slice(0, 20).forEach(post => {
+        const label = (post.sentimentLabel || 'NEUTRAL').toUpperCase();
+        const badgeClass = label === 'POSITIVE' ? 'badge-positive'
+                         : label === 'NEGATIVE' ? 'badge-negative'
+                         : 'badge-neutral';
+        const labelTR = label === 'POSITIVE' ? 'Pozitif'
+                      : label === 'NEGATIVE' ? 'Negatif' : 'Nötr';
+        const date = post.publishedAt ? new Date(post.publishedAt).toLocaleString('tr-TR') : '—';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${post.platform || '—'}</td>
+            <td>${post.authorUsername || '—'}</td>
+            <td>${(post.content || '').substring(0, 80)}${(post.content || '').length > 80 ? '…' : ''}</td>
+            <td><span class="badge ${badgeClass}">${labelTR}</span></td>
+            <td>${date}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ── Simülasyon Verisi ────────────────────────────────────────
+const SAMPLE_POSTS = [
+    { platform: 'Twitter', authorUsername: '@analizci', content: 'Bu teknoloji harika bir gelişme! Yapay zeka dünyayı değiştirecek.', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T10:30:00Z' },
+    { platform: 'Facebook', authorUsername: 'teknoloji_fan', content: 'Yeni güncelleme berbat olmuş, eski hali çok daha iyiydi.', sentimentLabel: 'NEGATIVE', publishedAt: '2026-05-14T09:15:00Z' },
+    { platform: 'Instagram', authorUsername: 'dijital_guru', content: 'Bugün bulut teknolojileri üzerine bir webinar düzenledik.', sentimentLabel: 'NEUTRAL', publishedAt: '2026-05-14T08:00:00Z' },
+    { platform: 'Twitter', authorUsername: '@veri_bilimci', content: 'Spark Streaming ile gerçek zamanlı analiz muhteşem çalışıyor!', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T07:45:00Z' },
+    { platform: 'Reddit', authorUsername: 'dev_user42', content: 'Kafka cluster kurulumu düşündüğümden zor oldu ama sonuç mükemmel.', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T06:30:00Z' },
+];
+
+// ── Arama İşlevi ─────────────────────────────────────────────
+async function handleSearch() {
+    const query = searchInput.value.trim();
+    if (!query) { setStatus('Lütfen bir anahtar kelime girin.', 'error'); return; }
+    setStatus(`'${query}' için aranıyor...`, '');
+    try {
+        const res = await fetch(`${API_BASE}/social-media-posts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ keyword: arananKelime })
+            body: JSON.stringify({ platform: 'search', content: query, externalId: 'search-' + Date.now() })
         });
-
-        if (!response.ok) throw new Error("Arka plan sunucusu (Backend) şu an kapalı.");
-        const data = await response.json();
-        console.log("Gerçek Sunucudan Gelen Veri:", data);
-        setStatus("Gerçek API'den veri başarıyla alındı.", "success");
-
-    } catch (error) {
-        // SENARYO 2: Hata Yönetimi
-        console.error("Senaryo 2 Başarılı (Hata Yakalandı):", error.message);
-        setStatus("Gerçek API'ye ulaşılamadı. Simülasyon moduna geçildi.", "error");
-
-        // SENARYO 1: JSON Şeması
-        console.log("Senaryo 1: Tasarlanan JSON formatı arayüze yükleniyor...");
-        const sahteGelenVeri = {
-            "system_info": { "source": "Twitter API", "ingestion_time": "2026-03-27T18:00:00Z" },
-            "post_id": "ID_123456",
-            "user": "@analizci",
-            "text": "Bu teknoloji dünyayı değiştirecek!",
-            "analysis_results": { "sentiment": "Positive", "confidence_score": 0.94, "language": "tr" }
-        };
-
-        alert(`GELEN JSON VERİSİ (Simülasyon)\n\n` +
-              `Kullanıcı: ${sahteGelenVeri.user}\n` +
-              `Tweet: ${sahteGelenVeri.text}\n` +
-              `Duygu Analizi: ${sahteGelenVeri.analysis_results.sentiment}\n` +
-              `Güven Skoru: %${sahteGelenVeri.analysis_results.confidence_score * 100}`);
-    } finally {
-        testBtn.disabled = false;
-        testBtn.textContent = "Performans Testi Yap";
+        if (!res.ok) throw new Error('Backend kapalı');
+        setStatus(`'${query}' sorgusu başarıyla gönderildi.`, 'success');
+    } catch (e) {
+        setStatus(`Backend erişilemedi. Simülasyon modunda çalışılıyor.`, 'error');
     }
 }
 
-testBtn.addEventListener('click', performansTestiCalistir);
-searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') performansTestiCalistir();
-});
+searchBtn.addEventListener('click', handleSearch);
+searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
 
-// --- HAFTA 5: ÖLÇEKLENEBİLİRLİK VE OPTİMİZASYON ---
-
-// 1. OPTİMİZASYON: Debounce (Gereksiz Yükü Engelleme)
-// Arama kutusuna her harf girildiğinde API'ye gitmez, 
-// kullanıcı yazmayı bırakınca 500ms bekleyip tek bir istek atar.
-function debounce(func, delay) {
-    let timeoutId;
-    return function (...args) {
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            func.apply(null, args);
-        }, delay);
-    };
-}
-
-// HTML'deki arama kutusuna (searchInput) bu özelliği bağlıyoruz
-const aramaInput = document.getElementById('searchInput');
-if (aramaInput) {
-    aramaInput.addEventListener('input', debounce((e) => {
-        console.log(`[OPTİMİZASYON] Gereksiz API istekleri durduruldu.`);
-        console.log(`Sorgu: '${e.target.value}' kelimesi için tek bir optimize istek hazırlanıyor...`);
-    }, 500));
-}
-
-// 2. ÖLÇEKLENEBİLİRLİK TESTİ: Stress Test (Yük Testi Simülasyonu)
-// Konsola stressTest(100) yazarak aynı anda 100 isteği deneyebilirsin.
-async function stressTest(istekSayisi = 50) {
-    console.log(`\n🚨 ÖLÇEKLENEBİLİRLİK TESTİ BAŞLATILDI: ${istekSayisi} eşzamanlı istek...`);
-    const baslangic = performance.now();
-
-    // Fatih'in tasarladığı endpoint'leri simüle eden çoklu istekler
-    const testler = Array.from({ length: istekSayisi }).map(async (_, i) => {
-        try {
-            // Mevcut veri yapısını zorluyoruz
-            return await fetch('/api/v1/sentiment/summary', { method: 'GET' });
-        } catch (e) {
-            return i; // Hata olsa bile frontend'in kilitlenmediğini ölçüyoruz
-        }
-    });
-
-    await Promise.all(testler);
-    const toplamSure = (performance.now() - baslangic).toFixed(2);
-    
-    console.log(`✅ TEST BAŞARILI: Sistem ${istekSayisi} isteği ${toplamSure} ms sürede frontend performansını bozmadan yönetti.`);
-}
+// ── Sayfa Yüklendiğinde ──────────────────────────────────────
+fetchSentiments();
+fetchTrends();
+fetchRecentPosts();
