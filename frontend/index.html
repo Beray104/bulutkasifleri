@@ -141,6 +141,16 @@
         <!-- ─── Durum Mesajı ─── -->
         <p id="statusMessage" class="status-msg" role="status" aria-live="polite"></p>
 
+        <!-- ─── Post Detay Modalı ─── -->
+        <div id="postModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="closeModalBtn">&times;</span>
+                <h3 class="modal-title">Gönderi Detayı</h3>
+                <p class="modal-body-text" id="modalPostContent"></p>
+                <div class="modal-meta" id="modalPostMeta"></div>
+            </div>
+        </div>
+
     </main>
 
     <script src="api.js" defer></script>

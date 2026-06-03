@@ -11,6 +11,12 @@ const statusEl        = document.getElementById('statusMessage');
 const menuToggle      = document.getElementById('menuToggle');
 const sidebar         = document.getElementById('sidebar');
 
+// Modal DOM Referansları
+const postModal       = document.getElementById('postModal');
+const closeModalBtn   = document.getElementById('closeModalBtn');
+const modalPostContent= document.getElementById('modalPostContent');
+const modalPostMeta   = document.getElementById('modalPostMeta');
+
 // Özet kartları
 const totalPostsEl    = document.getElementById('totalPosts');
 const positiveRateEl  = document.getElementById('positiveRate');
@@ -200,18 +206,46 @@ function renderPostsTable(posts) {
         const labelTR = label === 'POSITIVE' ? 'Pozitif'
                       : label === 'NEGATIVE' ? 'Negatif' : 'Nötr';
         const date = post.publishedAt ? new Date(post.publishedAt).toLocaleString('tr-TR') : '—';
+        
+        const contentStr = (post.content || '');
+        const truncated = contentStr.substring(0, 80) + (contentStr.length > 80 ? '…' : '');
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${post.platform || '—'}</td>
             <td>${post.authorUsername || '—'}</td>
-            <td>${(post.content || '').substring(0, 80)}${(post.content || '').length > 80 ? '…' : ''}</td>
+            <td class="clickable-text" title="Tamamını okumak için tıklayın">${truncated}</td>
             <td><span class="badge ${badgeClass}">${labelTR}</span></td>
             <td>${date}</td>
         `;
+        
+        // Tıklayınca modalı aç
+        tr.children[2].addEventListener('click', () => showPostModal(post));
+        
         tbody.appendChild(tr);
     });
 }
+
+// ─── Modal İşlevleri ───────────────────────────────────────
+function showPostModal(post) {
+    modalPostContent.textContent = post.content || 'İçerik yok';
+    modalPostMeta.innerHTML = `
+        <span><b>Platform:</b> ${post.platform || '—'}</span> | 
+        <span><b>Yazar:</b> ${post.authorUsername || '—'}</span> | 
+        <span><b>Tarih:</b> ${post.publishedAt ? new Date(post.publishedAt).toLocaleString('tr-TR') : '—'}</span>
+    `;
+    postModal.style.display = 'block';
+}
+
+closeModalBtn.addEventListener('click', () => {
+    postModal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === postModal) {
+        postModal.style.display = 'none';
+    }
+});
 
 // ─── Simülasyon Verisi ───────────────────────────────────
 const SAMPLE_POSTS = [
