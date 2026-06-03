@@ -172,16 +172,19 @@ async function fetchTrends() {
     }
 }
 
-// Son postlarÄ± backend'den Ã§ek ve tabloya yaz
+let allPosts = [];
+
+// Son postları backend'den çek ve tabloya yaz
 async function fetchRecentPosts() {
     try {
         const res = await fetch(`${API_BASE}/social-media-posts`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Backend kapalı');
-        const posts = await res.json();
-        renderPostsTable(posts);
+        allPosts = await res.json();
+        renderPostsTable(allPosts);
     } catch (e) {
-        console.warn('Posts API eriÅŸilemedi, simÃ¼lasyon verisi kullanÄ±lÄ±yor:', e.message);
-        renderPostsTable(SAMPLE_POSTS);
+        console.warn('Posts API erişilemedi, simülasyon verisi kullanılıyor:', e.message);
+        allPosts = SAMPLE_POSTS;
+        renderPostsTable(allPosts);
     }
 }
 
@@ -220,21 +223,22 @@ const SAMPLE_POSTS = [
 ];
 
 // â”€â”€ Arama Ä°ÅŸlevi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-async function handleSearch() {
-    const query = searchInput.value.trim();
-    if (!query) { setStatus('LÃ¼tfen bir anahtar kelime girin.', 'error'); return; }
-    setStatus(`'${query}' iÃ§in aranÄ±yor...`, '');
-    try {
-        const res = await fetch(`${API_BASE}/social-media-posts`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ platform: 'search', content: query, externalId: 'search-' + Date.now() })
-        });
-        if (!res.ok) throw new Error('Backend kapalÄ±');
-        setStatus(`'${query}' sorgusu baÅŸarÄ±yla gÃ¶nderildi.`, 'success');
-    } catch (e) {
-        setStatus(`Backend eriÅŸilemedi. SimÃ¼lasyon modunda Ã§alÄ±ÅŸÄ±lÄ±yor.`, 'error');
+function handleSearch() {
+    const query = searchInput.value.trim().toLowerCase();
+    if (!query) { 
+        renderPostsTable(allPosts);
+        setStatus('Tüm gönderiler listeleniyor.', 'success');
+        return; 
     }
+    
+    const filtered = allPosts.filter(post => 
+        (post.content && post.content.toLowerCase().includes(query)) ||
+        (post.authorUsername && post.authorUsername.toLowerCase().includes(query)) ||
+        (post.platform && post.platform.toLowerCase().includes(query))
+    );
+    
+    renderPostsTable(filtered);
+    setStatus(`'${query}' için ${filtered.length} sonuç bulundu.`, 'success');
 }
 
 let searchTimeout = null;
