@@ -1,36 +1,36 @@
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Sosyal Medya Analiz Platformu â€” Dashboard API & Grafik MantÄ±ÄŸÄ±
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ─────────────────────────────────────────────────────────────────
+// Sosyal Medya Analiz Platformu — Dashboard API & Grafik Mantığı
+// ─────────────────────────────────────────────────────────────────
 
 const API_BASE = 'http://localhost:8080/api/v1';
 
-// â”€â”€ DOM ReferanslarÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── DOM Referansları ──────────────────────────────────────────
 const searchInput     = document.getElementById('searchInput');
 const searchBtn       = document.getElementById('searchBtn');
 const statusEl        = document.getElementById('statusMessage');
 const menuToggle      = document.getElementById('menuToggle');
 const sidebar         = document.getElementById('sidebar');
 
-// Ã–zet kartlarÄ±
+// Özet kartları
 const totalPostsEl    = document.getElementById('totalPosts');
 const positiveRateEl  = document.getElementById('positiveRate');
 const negativeRateEl  = document.getElementById('negativeRate');
 const trendCountEl    = document.getElementById('trendCount');
 
-// â”€â”€ Sidebar Toggle (Mobil) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sidebar Toggle (Mobil) ──────────────────────────────
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
         sidebar.classList.toggle('open');
     });
 }
 
-// â”€â”€ Durum MesajÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Durum Mesajı ──────────────────────────────────────────
 function setStatus(message, type) {
     statusEl.textContent = message;
     statusEl.className = type ? `status-msg ${type}` : 'status-msg';
 }
 
-// â”€â”€ Chart.js YapÄ±landÄ±rma â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Chart.js Yapılandırma ──────────────────────────────
 Chart.defaults.color = '#94a3b8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
@@ -40,7 +40,7 @@ const sentimentPieChart = new Chart(
     {
         type: 'doughnut',
         data: {
-            labels: ['Pozitif', 'Negatif', 'NÃ¶tr'],
+            labels: ['Pozitif', 'Negatif', 'Nötr'],
             datasets: [{
                 data: [45, 25, 30],
                 backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
@@ -60,7 +60,7 @@ const sentimentPieChart = new Chart(
     }
 );
 
-// 2. Trend AkÄ±ÅŸÄ± Line Chart
+// 2. Trend Akışı Line Chart
 const trendLineChart = new Chart(
     document.getElementById('trendLineChart').getContext('2d'),
     {
@@ -83,7 +83,7 @@ const trendLineChart = new Chart(
                     fill: true, tension: 0.4, pointRadius: 3
                 },
                 {
-                    label: 'NÃ¶tr',
+                    label: 'Nötr',
                     data: [30, 25, 40, 50, 45, 38, 42],
                     borderColor: '#f59e0b',
                     backgroundColor: 'rgba(245,158,11,0.1)',
@@ -103,7 +103,7 @@ const trendLineChart = new Chart(
     }
 );
 
-// 3. Platform DaÄŸÄ±lÄ±mÄ± Bar Chart
+// 3. Platform Dağılımı Bar Chart
 const platformBarChart = new Chart(
     document.getElementById('platformBarChart').getContext('2d'),
     {
@@ -111,7 +111,7 @@ const platformBarChart = new Chart(
         data: {
             labels: ['Twitter', 'Facebook', 'Instagram', 'Reddit'],
             datasets: [{
-                label: 'Post SayÄ±sÄ±',
+                label: 'Post Sayısı',
                 data: [420, 280, 350, 150],
                 backgroundColor: ['#6366f1', '#3b82f6', '#a855f7', '#f97316'],
                 borderRadius: 6,
@@ -130,9 +130,9 @@ const platformBarChart = new Chart(
     }
 );
 
-// â”€â”€ API Ã‡aÄŸrÄ±larÄ± â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── API Çağrıları ──────────────────────────────────────────
 
-// Duygu analizi daÄŸÄ±lÄ±mÄ±nÄ± backend'den Ã§ek
+// Duygu analizi dağılımını backend'den çek
 async function fetchSentiments() {
     try {
         const res = await fetch(`${API_BASE}/sentiments`, { cache: 'no-store' });
@@ -147,19 +147,19 @@ async function fetchSentiments() {
         sentimentPieChart.update();
 
         totalPostsEl.textContent = total.toLocaleString('tr-TR');
-        positiveRateEl.textContent = total > 0 ? `%${((map.POSITIVE / total) * 100).toFixed(1)}` : 'â€”';
-        negativeRateEl.textContent = total > 0 ? `%${((map.NEGATIVE / total) * 100).toFixed(1)}` : 'â€”';
+        positiveRateEl.textContent = total > 0 ? `%${((map.POSITIVE / total) * 100).toFixed(1)}` : '—';
+        negativeRateEl.textContent = total > 0 ? `%${((map.NEGATIVE / total) * 100).toFixed(1)}` : '—';
 
-        setStatus('Duygu analizi verileri baÅŸarÄ±yla yÃ¼klendi.', 'success');
+        setStatus('Duygu analizi verileri başarıyla yüklendi.', 'success');
     } catch (e) {
-        console.warn('Sentiment API eriÅŸilemedi, simÃ¼lasyon verisi kullanÄ±lÄ±yor:', e.message);
+        console.warn('Sentiment API erişilemedi, simülasyon verisi kullanılıyor:', e.message);
         totalPostsEl.textContent = '1.200';
         positiveRateEl.textContent = '%45';
         negativeRateEl.textContent = '%25';
     }
 }
 
-// Trend verilerini backend'den Ã§ek
+// Trend verilerini backend'den çek
 async function fetchTrends() {
     try {
         const res = await fetch(`${API_BASE}/trends`, { cache: 'no-store' });
@@ -167,7 +167,7 @@ async function fetchTrends() {
         const data = await res.json();
         trendCountEl.textContent = data.length;
     } catch (e) {
-        console.warn('Trends API eriÅŸilemedi, simÃ¼lasyon verisi kullanÄ±lÄ±yor:', e.message);
+        console.warn('Trends API erişilemedi, simülasyon verisi kullanılıyor:', e.message);
         trendCountEl.textContent = '5';
     }
 }
@@ -188,7 +188,7 @@ async function fetchRecentPosts() {
     }
 }
 
-// â”€â”€ Tablo Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Tablo Render ──────────────────────────────────────────
 function renderPostsTable(posts) {
     const tbody = document.getElementById('postsBody');
     tbody.innerHTML = '';
@@ -198,14 +198,14 @@ function renderPostsTable(posts) {
                          : label === 'NEGATIVE' ? 'badge-negative'
                          : 'badge-neutral';
         const labelTR = label === 'POSITIVE' ? 'Pozitif'
-                      : label === 'NEGATIVE' ? 'Negatif' : 'NÃ¶tr';
-        const date = post.publishedAt ? new Date(post.publishedAt).toLocaleString('tr-TR') : 'â€”';
+                      : label === 'NEGATIVE' ? 'Negatif' : 'Nötr';
+        const date = post.publishedAt ? new Date(post.publishedAt).toLocaleString('tr-TR') : '—';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${post.platform || 'â€”'}</td>
-            <td>${post.authorUsername || 'â€”'}</td>
-            <td>${(post.content || '').substring(0, 80)}${(post.content || '').length > 80 ? 'â€¦' : ''}</td>
+            <td>${post.platform || '—'}</td>
+            <td>${post.authorUsername || '—'}</td>
+            <td>${(post.content || '').substring(0, 80)}${(post.content || '').length > 80 ? '…' : ''}</td>
             <td><span class="badge ${badgeClass}">${labelTR}</span></td>
             <td>${date}</td>
         `;
@@ -213,16 +213,16 @@ function renderPostsTable(posts) {
     });
 }
 
-// â”€â”€ SimÃ¼lasyon Verisi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Simülasyon Verisi ───────────────────────────────────
 const SAMPLE_POSTS = [
-    { platform: 'Twitter', authorUsername: '@analizci', content: 'Bu teknoloji harika bir geliÅŸme! Yapay zeka dÃ¼nyayÄ± deÄŸiÅŸtirecek.', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T10:30:00Z' },
-    { platform: 'Facebook', authorUsername: 'teknoloji_fan', content: 'Yeni gÃ¼ncelleme berbat olmuÅŸ, eski hali Ã§ok daha iyiydi.', sentimentLabel: 'NEGATIVE', publishedAt: '2026-05-14T09:15:00Z' },
-    { platform: 'Instagram', authorUsername: 'dijital_guru', content: 'BugÃ¼n bulut teknolojileri Ã¼zerine bir webinar dÃ¼zenledik.', sentimentLabel: 'NEUTRAL', publishedAt: '2026-05-14T08:00:00Z' },
-    { platform: 'Twitter', authorUsername: '@veri_bilimci', content: 'Spark Streaming ile gerÃ§ek zamanlÄ± analiz muhteÅŸem Ã§alÄ±ÅŸÄ±yor!', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T07:45:00Z' },
-    { platform: 'Reddit', authorUsername: 'dev_user42', content: 'Kafka cluster kurulumu dÃ¼ÅŸÃ¼ndÃ¼ÄŸÃ¼mden zor oldu ama sonuÃ§ mÃ¼kemmel.', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T06:30:00Z' },
+    { platform: 'Twitter', authorUsername: '@analizci', content: 'Bu teknoloji harika bir gelişme! Yapay zeka dünyayı değiştirecek.', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T10:30:00Z' },
+    { platform: 'Facebook', authorUsername: 'teknoloji_fan', content: 'Yeni güncelleme berbat olmuş, eski hali çok daha iyiydi.', sentimentLabel: 'NEGATIVE', publishedAt: '2026-05-14T09:15:00Z' },
+    { platform: 'Instagram', authorUsername: 'dijital_guru', content: 'Bugün bulut teknolojileri üzerine bir webinar düzenledik.', sentimentLabel: 'NEUTRAL', publishedAt: '2026-05-14T08:00:00Z' },
+    { platform: 'Twitter', authorUsername: '@veri_bilimci', content: 'Spark Streaming ile gerçek zamanlı analiz muhteşem çalışıyor!', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T07:45:00Z' },
+    { platform: 'Reddit', authorUsername: 'dev_user42', content: 'Kafka cluster kurulumu düşündüğümden zor oldu ama sonuç mükemmel.', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T06:30:00Z' },
 ];
 
-// â”€â”€ Arama Ä°ÅŸlevi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Arama İşlevi ──────────────────────────────────────────
 function handleSearch() {
     const query = searchInput.value.trim().toLowerCase();
     if (!query) { 
@@ -259,7 +259,7 @@ searchInput.addEventListener('keydown', e => {
     }
 });
 
-// â”€â”€ Sayfa YÃ¼klendiÄŸinde â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sayfa Yüklendiğinde ─────────────────────────────────
 fetchSentiments();
 fetchTrends();
 fetchRecentPosts();
