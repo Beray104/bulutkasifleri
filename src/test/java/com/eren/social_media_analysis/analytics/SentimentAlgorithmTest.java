@@ -71,16 +71,24 @@ class SentimentAlgorithmTest {
 
         // Ham skor
         int rawScore = 0;
+        int posCount = 0;
+        int negCount = 0;
         for (String t : tokens) {
-            if (posWeights.containsKey(t)) rawScore += posWeights.get(t);
-            if (negWeights.containsKey(t)) rawScore -= negWeights.get(t);
+            if (posWeights.containsKey(t)) { rawScore += posWeights.get(t); posCount++; }
+            if (negWeights.containsKey(t)) { rawScore -= negWeights.get(t); negCount++; }
         }
 
         // Olumsuzlama
         Set<String> negationSet = new HashSet<>(Arrays.asList(
                 "değil","degil","yok","olmaz","hayır","hayir","hiç","hic","not","no","never"));
         boolean hasNegation = tokenSet.stream().anyMatch(negationSet::contains);
-        if (hasNegation) rawScore = -rawScore;
+        if (hasNegation) {
+            if (posCount > 0 && negCount == 0) {
+                 rawScore = -rawScore;
+            } else {
+                 rawScore = -Math.abs(rawScore) - 2;
+            }
+        }
 
         // Büyük harf yoğunluğu
         long upperCount = content.chars().filter(Character::isUpperCase).count();
@@ -89,7 +97,7 @@ class SentimentAlgorithmTest {
 
         // Soru cümlesi
         boolean isQuestion = content.contains("?");
-        if (isQuestion) rawScore = rawScore / 2;
+        if (isQuestion) rawScore = 0;
 
         // Normalize
         double normalized = (double) rawScore / (tokens.length + 1);
