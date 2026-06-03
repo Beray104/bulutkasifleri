@@ -135,8 +135,8 @@ const platformBarChart = new Chart(
 // Duygu analizi daÄŸÄ±lÄ±mÄ±nÄ± backend'den Ã§ek
 async function fetchSentiments() {
     try {
-        const res = await fetch(`${API_BASE}/sentiments`);
-        if (!res.ok) throw new Error('Backend kapalÄ±');
+        const res = await fetch(`${API_BASE}/sentiments`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Backend kapalı');
         const data = await res.json();
 
         const map = { POSITIVE: 0, NEGATIVE: 0, NEUTRAL: 0 };
@@ -162,8 +162,8 @@ async function fetchSentiments() {
 // Trend verilerini backend'den Ã§ek
 async function fetchTrends() {
     try {
-        const res = await fetch(`${API_BASE}/trends`);
-        if (!res.ok) throw new Error('Backend kapalÄ±');
+        const res = await fetch(`${API_BASE}/trends`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Backend kapalı');
         const data = await res.json();
         trendCountEl.textContent = data.length;
     } catch (e) {
@@ -175,8 +175,8 @@ async function fetchTrends() {
 // Son postlarÄ± backend'den Ã§ek ve tabloya yaz
 async function fetchRecentPosts() {
     try {
-        const res = await fetch(`${API_BASE}/social-media-posts`);
-        if (!res.ok) throw new Error('Backend kapalÄ±');
+        const res = await fetch(`${API_BASE}/social-media-posts`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Backend kapalı');
         const posts = await res.json();
         renderPostsTable(posts);
     } catch (e) {

@@ -21,6 +21,7 @@ public class SparkConfig {
 				.config("spark.es.nodes", properties.getElasticsearchNodes())
 				.config("spark.es.port", properties.getElasticsearchPort())
 				.config("spark.es.nodes.wan.only", "true")
+				.config("spark.ui.enabled", "false")
 				.getOrCreate();
 	}
 }
