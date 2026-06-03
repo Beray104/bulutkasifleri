@@ -26,7 +26,7 @@ class SentimentAlgorithmTest {
 
     /** Eski algoritma: basit sözlük, ağırlıksız */
     static String oldAlgorithm(String content) {
-        String lower = content.toLowerCase();
+        String lower = content.toLowerCase(new Locale("tr", "TR"));
         String[] tokens = lower.replaceAll("[^\\p{L}\\p{N} ]", " ").split("\\s+");
         Set<String> posWords = new HashSet<>(Arrays.asList(
                 "iyi","harika","mukemmel","pozitif","basarili","sevildi","great","good","happy"));
@@ -42,7 +42,7 @@ class SentimentAlgorithmTest {
 
     /** Yeni algoritma: ağırlıklı sözlük + kural tabanlı */
     static String newAlgorithm(String content) {
-        String lower = content.toLowerCase();
+        String lower = content.toLowerCase(new Locale("tr", "TR"));
         String[] tokens = lower.replaceAll("[^\\p{L}\\p{N} ]", " ").split("\\s+");
         Set<String> tokenSet = new HashSet<>(Arrays.asList(tokens));
 
