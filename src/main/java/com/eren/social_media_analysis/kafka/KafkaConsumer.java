@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 /**
  * Kafka Consumer servisi.
  *
- * Birden fazla topic'ten mesaj okur ve iş mantığı katmanına iletir.
- * Hata durumunda mesajlar dead-letter topic'ine yönlendirilir.
+ * Birden fazla topic'ten mesaj okur ve iÅŸ mantÄ±ÄŸÄ± katmanÄ±na iletir.
+ * Hata durumunda mesajlar dead-letter topic'ine yÃ¶nlendirilir.
  */
 @Component
 public class KafkaConsumer {
@@ -33,7 +33,7 @@ public class KafkaConsumer {
 	}
 
 	/**
-	 * Ana topic'ten gelen mesajları işler.
+	 * Ana topic'ten gelen mesajlarÄ± iÅŸler.
 	 * Hem social-media-topic hem raw-social-data topic'lerini dinler.
 	 */
 	@KafkaListener(
@@ -48,21 +48,21 @@ public class KafkaConsumer {
 			@Header(KafkaHeaders.OFFSET) long offset
 	) {
 		try {
-			log.info("[KAFKA-CONSUMER] Mesaj alındı. Topic={}, Partition={}, Offset={}, Platform={}",
+			log.info("[KAFKA-CONSUMER] Mesaj alÄ±ndÄ±. Topic={}, Partition={}, Offset={}, Platform={}",
 					topic, partition, offset, message.platform());
 
 			socialMediaService.processIncomingPost(message);
 
-			log.debug("[KAFKA-CONSUMER] Mesaj başarıyla işlendi. ExternalId={}", message.externalId());
+			log.debug("[KAFKA-CONSUMER] Mesaj baÅŸarÄ±yla iÅŸlendi. ExternalId={}", message.externalId());
 		} catch (Exception e) {
-			log.error("[KAFKA-CONSUMER] Mesaj işlenemedi, dead-letter'a yönlendiriliyor. " +
+			log.error("[KAFKA-CONSUMER] Mesaj iÅŸlenemedi, dead-letter'a yÃ¶nlendiriliyor. " +
 					"Topic={}, Offset={}, Hata={}", topic, offset, e.getMessage(), e);
 			sendToDeadLetter(message);
 		}
 	}
 
 	/**
-	 * Duygu analizi sonuçları topic'ini dinler.
+	 * Duygu analizi sonuÃ§larÄ± topic'ini dinler.
 	 */
 	@KafkaListener(
 		topics = KafkaConfig.TOPIC_SENTIMENT_RESULTS,
@@ -74,25 +74,25 @@ public class KafkaConsumer {
 			@Header(KafkaHeaders.RECEIVED_TOPIC) String topic
 	) {
 		try {
-			log.info("[KAFKA-CONSUMER] Sentiment sonucu alındı. Topic={}, Label={}",
+			log.info("[KAFKA-CONSUMER] Sentiment sonucu alÄ±ndÄ±. Topic={}, Label={}",
 					topic, message.sentimentLabel());
 			socialMediaService.processIncomingPost(message);
 		} catch (Exception e) {
-			log.error("[KAFKA-CONSUMER] Sentiment sonucu işlenemedi. Hata={}", e.getMessage(), e);
+			log.error("[KAFKA-CONSUMER] Sentiment sonucu iÅŸlenemedi. Hata={}", e.getMessage(), e);
 			sendToDeadLetter(message);
 		}
 	}
 
 	/**
-	 * İşlenemeyen mesajları dead-letter topic'ine yönlendirir.
+	 * Ä°ÅŸlenemeyen mesajlarÄ± dead-letter topic'ine yÃ¶nlendirir.
 	 */
 	private void sendToDeadLetter(SocialMediaMessage message) {
 		try {
 			kafkaTemplate.send(KafkaConfig.TOPIC_DEAD_LETTER, message);
-			log.warn("[KAFKA-CONSUMER] Mesaj dead-letter topic'ine gönderildi. ExternalId={}",
+			log.warn("[KAFKA-CONSUMER] Mesaj dead-letter topic'ine gÃ¶nderildi. ExternalId={}",
 					message.externalId());
 		} catch (Exception dlEx) {
-			log.error("[KAFKA-CONSUMER] Dead-letter topic'ine de gönderilemedi! Hata={}",
+			log.error("[KAFKA-CONSUMER] Dead-letter topic'ine de gÃ¶nderilemedi! Hata={}",
 					dlEx.getMessage());
 		}
 	}

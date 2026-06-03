@@ -14,11 +14,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Elasticsearch doküman modeli — sosyal medya postlarını indeksler.
+ * Elasticsearch dokÃ¼man modeli â€” sosyal medya postlarÄ±nÄ± indeksler.
  *
- * İndeks Adı : social_media_posts
+ * Ä°ndeks AdÄ± : social_media_posts
  * Analyzer   : turkish_analyzer (ana), english_analyzer (alt alan)
- * Strateji   : Çok dilli içerik analizi için multi-field yapı kullanılır.
+ * Strateji   : Ã‡ok dilli iÃ§erik analizi iÃ§in multi-field yapÄ± kullanÄ±lÄ±r.
  */
 @Document(indexName = "social_media_posts")
 @Setting(settingPath = "elasticsearch/social-media-posts-settings.json")
@@ -37,10 +37,10 @@ public class SocialMediaPostDocument {
 	private String authorUsername;
 
 	/**
-	 * İçerik alanı multi-field olarak indekslenir:
-	 *   - Ana alan: turkish_analyzer ile Türkçe metin analizi
-	 *   - .english : english_analyzer ile İngilizce metin analizi
-	 *   - .keyword : Tam eşleşme ve aggregation sorguları için
+	 * Ä°Ã§erik alanÄ± multi-field olarak indekslenir:
+	 *   - Ana alan: turkish_analyzer ile TÃ¼rkÃ§e metin analizi
+	 *   - .english : english_analyzer ile Ä°ngilizce metin analizi
+	 *   - .keyword : Tam eÅŸleÅŸme ve aggregation sorgularÄ± iÃ§in
 	 */
 	@MultiField(
 		mainField = @Field(type = FieldType.Text, analyzer = "turkish_analyzer"),
@@ -93,7 +93,7 @@ public class SocialMediaPostDocument {
 	@Field(type = FieldType.Date, format = DateFormat.date_time)
 	private Instant indexedAt = Instant.now();
 
-	// ── Getter / Setter ──────────────────────────────────────
+	// â”€â”€ Getter / Setter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	public String getId() { return id; }
 	public void setId(String id) { this.id = id; }

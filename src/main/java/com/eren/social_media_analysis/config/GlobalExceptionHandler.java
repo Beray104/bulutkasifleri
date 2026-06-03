@@ -15,11 +15,11 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Merkezi hata yakalama ve raporlama mekanizması.
+ * Merkezi hata yakalama ve raporlama mekanizmasÄ±.
  *
- * Tüm controller'lardan fırlayan hatalar burada yakalanır,
- * yapısal olarak loglanır ve standart hata response'u döndürülür.
- * Her hata için benzersiz bir correlationId üretilir.
+ * TÃ¼m controller'lardan fÄ±rlayan hatalar burada yakalanÄ±r,
+ * yapÄ±sal olarak loglanÄ±r ve standart hata response'u dÃ¶ndÃ¼rÃ¼lÃ¼r.
+ * Her hata iÃ§in benzersiz bir correlationId Ã¼retilir.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
-     * Validation hataları (DTO @NotBlank, @Valid vb.)
+     * Validation hatalarÄ± (DTO @NotBlank, @Valid vb.)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
         String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .reduce((a, b) -> a + "; " + b)
-                .orElse("Geçersiz istek verisi");
+                .orElse("GeÃ§ersiz istek verisi");
 
         log.warn("[HATA-RAPOR] correlationId={}, tip=VALIDATION, mesaj={}",
                 correlationId, errorMessage);
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Kafka bağlantı ve gönderim hataları
+     * Kafka baÄŸlantÄ± ve gÃ¶nderim hatalarÄ±
      */
     @ExceptionHandler(KafkaException.class)
     public ResponseEntity<Map<String, Object>> handleKafkaError(KafkaException ex) {
@@ -56,11 +56,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(buildErrorResponse(correlationId, "KAFKA_ERROR",
-                        "Mesajlaşma servisi geçici olarak kullanılamıyor.", 503));
+                        "MesajlaÅŸma servisi geÃ§ici olarak kullanÄ±lamÄ±yor.", 503));
     }
 
     /**
-     * IllegalArgument hataları (iş mantığı validasyonları)
+     * IllegalArgument hatalarÄ± (iÅŸ mantÄ±ÄŸÄ± validasyonlarÄ±)
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Beklenmeyen tüm hatalar (catch-all)
+     * Beklenmeyen tÃ¼m hatalar (catch-all)
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
@@ -85,11 +85,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(buildErrorResponse(correlationId, "INTERNAL_ERROR",
-                        "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.", 500));
+                        "Beklenmeyen bir hata oluÅŸtu. LÃ¼tfen daha sonra tekrar deneyin.", 500));
     }
 
     /**
-     * Standart hata response'u oluşturur.
+     * Standart hata response'u oluÅŸturur.
      */
     private Map<String, Object> buildErrorResponse(String correlationId, String errorType,
                                                     String message, int status) {

@@ -1,0 +1,43 @@
+PR: Sosyal Medya Analiz Platformu Altyapı ve Arayüz Geliştirmeleri (5 Temel Görev)
+
+### Özet
+Bu Pull Request, projenin veri akış, depolama, arayüz ve izleme katmanlarını kapsayan 5 temel geliştirme görevini içermektedir. Mevcut yapıdaki aykırılıklar giderilmiş ve sistem "production-ready" hale getirilmiştir.
+
+---
+
+### Yapılan Değişiklikler
+
+1. Elasticsearch Veri Modeli ve İndeksleme Stratejisi
+- Custom Analyzers: Türkçe (turkish_analyzer) ve İngilizce (english_analyzer) dil analizörleri yapılandırıldı.
+- Multi-field Content: content alanı hem tam metin arama hem de tam eşleşme (keyword) için çoklu alan olarak tanımlandı.
+- Zenginleştirilmiş Model: Beğeni, paylaşım, etkileşim oranı ve medya tipi gibi yeni metrik alanları eklendi.
+- Dokümantasyon: Tüm indeksleme stratejisini açıklayan Elasticsearch_Veri_Modeli_Indeksleme_Prototipi.md oluşturuldu.
+
+2. Kafka Mimari Analiz ve Planlama
+- Topic Tasarımı: raw-social-data, processed-tweets, sentiment-results ve dead-letter topic yapıları partition ve replication stratejileriyle birlikte planlandı.
+- Spark Entegrasyonu: Spark Streaming'in bu topic'leri nasıl tüketeceği ve offset yönetimi detaylandırıldı.
+- Mimari Diyagram: Veri akışını gösteren kapsamlı bir Mermaid diyagramı eklendi (Kafka_Veri_Akis_Katmani_Mimari_Analiz.md).
+
+3. Modern Web Arayüzü (Dashboard)
+- Tasarım: Dark-theme odaklı, modern ve responsive (masaüstü/tablet/mobil) bir dashboard tasarlandı.
+- Grafikler: Duygu analizi dağılımı (Pie), trend akışı (Line) ve platform dağılımı (Bar) grafikleri eklendi.
+- API Entegrasyonu: Arayüz, backend endpoint'leri (/sentiments, /trends, /posts) ile tam uyumlu hale getirildi.
+
+4. Kafka Producer/Consumer Servis Geliştirmeleri
+- Multi-Topic Routing: Verilerin platform bazlı olarak ilgili topic'lere yönlendirilmesi sağlandı.
+- Retry Mekanizması: Producer tarafında hata durumunda 3 kez otomatik deneme (retry) yapılandırıldı.
+- Hata Yönetimi (DLQ): İşlenemeyen mesajların social-media-dead-letter topic'ine otomatik yönlendirilmesi sağlandı.
+- Concurrency: Tüketici tarafında paralel işleme kapasitesi artırıldı.
+
+5. Merkezi Log Yönetimi ve Hata İzleme
+- Yapılandırılmış Loglama: Logback ile konsol, rolling file ve ELK uyumlu JSON formatında loglama kuruldu.
+- Global Exception Handler: Tüm uygulama hataları için benzersiz correlationId üreten merkezi hata yakalama mekanizması eklendi.
+- Actuator İzleme: Uygulama sağlığı ve metrikleri için /actuator/health ve /actuator/metrics endpoint'leri yapılandırıldı.
+
+---
+
+### Doğrulama ve Testler
+- ES mapping ve analyzer ayarları manuel olarak doğrulandı.
+- Kafka topic yapılandırmaları ve partition key stratejisi kontrol edildi.
+- Dashboard arayüzü farklı ekran boyutlarında test edildi.
+- Hata yakalama (Exception Handling) ve yapısal log çıktıları gözlemlendi.

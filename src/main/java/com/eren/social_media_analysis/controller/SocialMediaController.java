@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "https://yourdomain.com")
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1")
 public class SocialMediaController {
 
@@ -31,26 +31,26 @@ public class SocialMediaController {
 		this.kafkaProducer = kafkaProducer;
 	}
 
-	// Frontend trend verilerini bu endpoint üzerinden çeker.
+	// Frontend trend verilerini bu endpoint Ã¼zerinden Ã§eker.
 	@GetMapping("/trends")
 	public List<TrendResponse> getTrends() {
 		return socialMediaService.getTopTrends();
 	}
 
-	// Frontend duygu analizi dağılımını bu endpoint üzerinden çeker.
+	// Frontend duygu analizi daÄŸÄ±lÄ±mÄ±nÄ± bu endpoint Ã¼zerinden Ã§eker.
 	@GetMapping("/sentiments")
 	public List<SentimentSummaryResponse> getSentiments() {
 		return socialMediaService.getSentimentSummary();
 	}
 
-	// Veri toplama katmanından gelen ham içeriği Kafka kuyruğuna aktarır.
+	// Veri toplama katmanÄ±ndan gelen ham iÃ§eriÄŸi Kafka kuyruÄŸuna aktarÄ±r.
 	@PostMapping("/social-media-posts")
 	@ResponseStatus(HttpStatus.ACCEPTED)
 	public void publishPost(@Valid @RequestBody SocialMediaMessage message) {
 		kafkaProducer.publish(message);
 	}
 
-	// Son kayıtları DTO olarak sunar; entity/document nesneleri dışarı açılmaz.
+	// Son kayÄ±tlarÄ± DTO olarak sunar; entity/document nesneleri dÄ±ÅŸarÄ± aÃ§Ä±lmaz.
 	@GetMapping("/social-media-posts")
 	public List<SocialMediaPostResponse> getRecentPosts() {
 		return socialMediaService.getRecentPosts();
