@@ -131,8 +131,12 @@ public class SparkStructuredStreamingJob implements SmartLifecycle {
         // Temiz metin (noktalama kaldır, küçük harf)
         Column cleanText = lower(regexp_replace(col("content"), "[^\\p{L}\\p{N}#@!? ]", " "));
 
-        // Tokenlar
-        Column tokens = split(regexp_replace(cleanText, "[#@]", ""), "\\s+");
+        // Olumsuzlama düzeltmeleri (n-gram tabanlı kural)
+        Column negatedText1 = regexp_replace(cleanText, "(?i)\\b(iyi|güzel|guzel|harika|mükemmel|mukemmel|başarılı|basarili|süper|super)\\s+(değil|degil|yok|olmaz)\\b", "kötü");
+        Column negatedText2 = regexp_replace(negatedText1, "(?i)\\b(kötü|kotu|berbat|rezalet|başarısız|basarisiz|vasat|çirkin)\\s+(değil|degil|yok|olmaz)\\b", "iyi");
+
+        // Tokenlar (düzeltilmiş metin üzerinden)
+        Column tokens = split(regexp_replace(negatedText2, "[#@]", ""), "\\s+");
 
         // Hashtag çıkarma
         Column hashtags = regexp_extract_all(col("content"), lit("#[\\p{L}\\p{N}_]+"), lit(0));
@@ -147,9 +151,7 @@ public class SparkStructuredStreamingJob implements SmartLifecycle {
         // Soru cümlesi tespiti
         Column isQuestion = col("content").contains("?");
 
-        // Olumsuzlama tespiti (Türkçe + İngilizce)
-        Column negationWords = expr("array('değil','degil','yok','olmaz','hayır','hayir','hiç','hic','not','no','never','nor','none')");
-        Column hasNegation   = size(array_intersect(tokens, negationWords)).gt(lit(0));
+
 
         // ── KATMAN-1: Ağırlıklı sözlük puanlama ───────────────────
 
@@ -183,16 +185,12 @@ public class SparkStructuredStreamingJob implements SmartLifecycle {
 
         // ── KATMAN-2: Kural tabanlı düzeltmeler ───────────────────
 
-        // Olumsuzlama varsa skoru tersine çevir
-        Column adjustedScore = when(hasNegation, rawScore.multiply(lit(-1)))
-                .otherwise(rawScore);
-
         // Büyük harf yoğunluğu → mutlak değeri %20 artır
         // (negatifse daha negatif, pozitifse daha pozitif)
         Column boostedScore = when(isIntense,
-                when(adjustedScore.gt(lit(0)), adjustedScore.multiply(lit(1.2)))
-                .otherwise(adjustedScore.multiply(lit(1.2))))
-                .otherwise(adjustedScore);
+                when(rawScore.gt(lit(0)), rawScore.multiply(lit(1.2)))
+                .otherwise(rawScore.multiply(lit(1.2))))
+                .otherwise(rawScore);
 
         // Soru cümlesi → skoru 0'a çek (%50 azalt)
         Column finalRawScore = when(isQuestion, boostedScore.divide(lit(2)))
@@ -214,7 +212,6 @@ public class SparkStructuredStreamingJob implements SmartLifecycle {
                 .withColumn("tokens",            tokens)
                 .withColumn("hashtags",          hashtags)
                 .withColumn("trend_keywords",    concat_ws(",", hashtags))
-                .withColumn("has_negation",      hasNegation)
                 .withColumn("is_question",       isQuestion)
                 .withColumn("is_intense",        isIntense)
                 .withColumn("raw_score",         rawScore)
@@ -233,7 +230,6 @@ public class SparkStructuredStreamingJob implements SmartLifecycle {
                         col("trend_keywords"),
                         col("sentiment_score"),
                         col("sentiment_label"),
-                        col("has_negation"),
                         col("is_question"),
                         col("is_intense"),
                         col("published_at"),
@@ -250,6 +246,8 @@ public class SparkStructuredStreamingJob implements SmartLifecycle {
                 .format("org.elasticsearch.spark.sql")
                 .option("checkpointLocation", properties.getCheckpointLocation())
                 .option("es.resource", properties.getElasticsearchIndex())
+                .option("es.net.http.auth.user", properties.getElasticsearchUsername())
+                .option("es.net.http.auth.pass", properties.getElasticsearchPassword())
                 .start();
     }
 }

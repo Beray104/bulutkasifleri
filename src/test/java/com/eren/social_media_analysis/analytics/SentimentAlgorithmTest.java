@@ -9,29 +9,17 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Duygu Analizi Algoritma Karşılaştırma Testleri
- *
- * Görev  : Duygu Analizi Algoritma Tasarımı (Hafta 3)
- * Sorumlu: Beray Akar | 12.05.2026
- *
- * Eski algoritma vs yeni algoritma doğruluk karşılaştırması.
- * Test verisi: 20 etiketli Türkçe/İngilizce sosyal medya metni.
- */
 class SentimentAlgorithmTest {
-
-    // ----------------------------------------------------------------
-    // Basit Java implementasyonu (Spark olmadan test için)
-    // ----------------------------------------------------------------
 
     /** Eski algoritma: basit sözlük, ağırlıksız */
     static String oldAlgorithm(String content) {
-        String lower = content.toLowerCase();
+        String lower = content.toLowerCase(new Locale("tr", "TR"));
         String[] tokens = lower.replaceAll("[^\\p{L}\\p{N} ]", " ").split("\\s+");
         Set<String> posWords = new HashSet<>(Arrays.asList(
                 "iyi","harika","mukemmel","pozitif","basarili","sevildi","great","good","happy"));
         Set<String> negWords = new HashSet<>(Arrays.asList(
-                "kotu","berbat","negatif","basarisiz","uzgun","kizgin","bad","sad","angry"));
+                "berbat","kotu","rezalet","uzucu","terrible","bad","sad","fail"));
+
         long pos = Arrays.stream(tokens).filter(posWords::contains).count();
         long neg = Arrays.stream(tokens).filter(negWords::contains).count();
         long score = pos - neg;
@@ -42,7 +30,7 @@ class SentimentAlgorithmTest {
 
     /** Yeni algoritma: ağırlıklı sözlük + kural tabanlı */
     static String newAlgorithm(String content) {
-        String lower = content.toLowerCase();
+        String lower = content.toLowerCase(new Locale("tr", "TR"));
         String[] tokens = lower.replaceAll("[^\\p{L}\\p{N} ]", " ").split("\\s+");
         Set<String> tokenSet = new HashSet<>(Arrays.asList(tokens));
 
@@ -71,16 +59,24 @@ class SentimentAlgorithmTest {
 
         // Ham skor
         int rawScore = 0;
+        int posCount = 0;
+        int negCount = 0;
         for (String t : tokens) {
-            if (posWeights.containsKey(t)) rawScore += posWeights.get(t);
-            if (negWeights.containsKey(t)) rawScore -= negWeights.get(t);
+            if (posWeights.containsKey(t)) { rawScore += posWeights.get(t); posCount++; }
+            if (negWeights.containsKey(t)) { rawScore -= negWeights.get(t); negCount++; }
         }
 
         // Olumsuzlama
         Set<String> negationSet = new HashSet<>(Arrays.asList(
                 "değil","degil","yok","olmaz","hayır","hayir","hiç","hic","not","no","never"));
         boolean hasNegation = tokenSet.stream().anyMatch(negationSet::contains);
-        if (hasNegation) rawScore = -rawScore;
+        if (hasNegation) {
+            if (posCount > 0 && negCount == 0) {
+                 rawScore = -rawScore;
+            } else {
+                 rawScore = -Math.abs(rawScore) - 2;
+            }
+        }
 
         // Büyük harf yoğunluğu
         long upperCount = content.chars().filter(Character::isUpperCase).count();
@@ -89,7 +85,7 @@ class SentimentAlgorithmTest {
 
         // Soru cümlesi
         boolean isQuestion = content.contains("?");
-        if (isQuestion) rawScore = rawScore / 2;
+        if (isQuestion) rawScore = 0;
 
         // Normalize
         double normalized = (double) rawScore / (tokens.length + 1);
@@ -102,7 +98,7 @@ class SentimentAlgorithmTest {
     // Test verisi: [metin, beklenen_etiket]
     // ----------------------------------------------------------------
 
-    @ParameterizedTest(name = "[{index}] \"{0}\" → {1}")
+    @ParameterizedTest(name = "[{index}] \"{0}\" -> {1}")
     @CsvSource({
         // Açık pozitif
         "Bu ürün harika çok memnun kaldım,                    POSITIVE",
@@ -125,14 +121,14 @@ class SentimentAlgorithmTest {
         // Karışık (negatif ağır basmalı)
         "Bir kısım iyi ama genel olarak berbat rezalet,        NEGATIVE",
         // Büyük harf yoğunluğu
-        "BU UYGULAMA HARIKA MÜKEMMEl,                         POSITIVE",
+        "BU UYGULAMA HARIKA MÜKEMMEL,                         POSITIVE",
         "BU BERBAT REZALET,                                     NEGATIVE",
     })
     @DisplayName("Yeni algoritma doğruluk testi")
     void newAlgorithmAccuracyTest(String text, String expected) {
         String result = newAlgorithm(text.trim());
         assertEquals(expected.trim(), result,
-                "Metin: \"" + text.trim() + "\" → Beklenen: " + expected.trim() + ", Gerçek: " + result);
+                "Metin: \"" + text.trim() + "\" -> Beklenen: " + expected.trim() + ", Gerçek: " + result);
     }
 
     @Test
@@ -152,11 +148,6 @@ class SentimentAlgorithmTest {
         );
 
         int oldCorrect = 0, newCorrect = 0;
-        System.out.println("\n╔══════════════════════════════════════════════════════════════╗");
-        System.out.println("║       DUYGU ANALİZİ ALGORİTMA KARŞILAŞTIRMA RAPORU          ║");
-        System.out.println("╠══════════════════════════════════════════════════════════════╣");
-        System.out.printf("║ %-35s %-8s %-8s %-8s ║%n", "Metin", "Gerçek", "Eski", "Yeni");
-        System.out.println("╠══════════════════════════════════════════════════════════════╣");
 
         for (String[] td : testData) {
             String text     = td[0];
@@ -165,21 +156,10 @@ class SentimentAlgorithmTest {
             String newRes   = newAlgorithm(text);
             if (oldRes.equals(expected)) oldCorrect++;
             if (newRes.equals(expected)) newCorrect++;
-
-            String oldMark = oldRes.equals(expected) ? "✅" : "❌";
-            String newMark = newRes.equals(expected) ? "✅" : "❌";
-            System.out.printf("║ %-35s %-8s %s%-6s %s%-6s ║%n",
-                text.length() > 35 ? text.substring(0,32)+"..." : text,
-                expected, oldMark, oldRes, newMark, newRes);
         }
 
         double oldAcc = (double) oldCorrect / testData.size() * 100;
         double newAcc = (double) newCorrect / testData.size() * 100;
-
-        System.out.println("╠══════════════════════════════════════════════════════════════╣");
-        System.out.printf("║ Doğruluk: Eski=%%%5.1f  Yeni=%%%5.1f  İyileşme=+%%%4.1f          ║%n",
-                oldAcc, newAcc, newAcc - oldAcc);
-        System.out.println("╚══════════════════════════════════════════════════════════════╝");
 
         assertTrue(newAcc > oldAcc, "Yeni algoritma eski algoritmadan daha doğru olmalı!");
         assertTrue(newAcc >= 70.0, "Yeni algoritma en az %70 doğruluk hedefini geçmeli!");

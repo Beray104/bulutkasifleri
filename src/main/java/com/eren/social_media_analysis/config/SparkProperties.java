@@ -12,6 +12,8 @@ public class SparkProperties {
 	private String kafkaTopic;
 	private String elasticsearchNodes;
 	private String elasticsearchPort;
+	private String elasticsearchUsername;
+	private String elasticsearchPassword;
 	private String elasticsearchIndex;
 	private String checkpointLocation;
 
@@ -69,6 +71,22 @@ public class SparkProperties {
 
 	public void setElasticsearchPort(String elasticsearchPort) {
 		this.elasticsearchPort = elasticsearchPort;
+	}
+
+	public String getElasticsearchUsername() {
+		return elasticsearchUsername;
+	}
+
+	public void setElasticsearchUsername(String elasticsearchUsername) {
+		this.elasticsearchUsername = elasticsearchUsername;
+	}
+
+	public String getElasticsearchPassword() {
+		return elasticsearchPassword;
+	}
+
+	public void setElasticsearchPassword(String elasticsearchPassword) {
+		this.elasticsearchPassword = elasticsearchPassword;
 	}
 
 	public String getElasticsearchIndex() {

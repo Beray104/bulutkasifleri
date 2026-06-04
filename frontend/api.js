@@ -1,15 +1,21 @@
-// ═══════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────
 // Sosyal Medya Analiz Platformu — Dashboard API & Grafik Mantığı
-// ═══════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────
 
-const API_BASE = '/api/v1';
+const API_BASE = 'http://localhost:8080/api/v1';
 
-// ── DOM Referansları ─────────────────────────────────────────
+// ─── DOM Referansları ──────────────────────────────────────────
 const searchInput     = document.getElementById('searchInput');
 const searchBtn       = document.getElementById('searchBtn');
 const statusEl        = document.getElementById('statusMessage');
 const menuToggle      = document.getElementById('menuToggle');
 const sidebar         = document.getElementById('sidebar');
+
+// Modal DOM Referansları
+const postModal       = document.getElementById('postModal');
+const closeModalBtn   = document.getElementById('closeModalBtn');
+const modalPostContent= document.getElementById('modalPostContent');
+const modalPostMeta   = document.getElementById('modalPostMeta');
 
 // Özet kartları
 const totalPostsEl    = document.getElementById('totalPosts');
@@ -17,20 +23,20 @@ const positiveRateEl  = document.getElementById('positiveRate');
 const negativeRateEl  = document.getElementById('negativeRate');
 const trendCountEl    = document.getElementById('trendCount');
 
-// ── Sidebar Toggle (Mobil) ───────────────────────────────────
+// ─── Sidebar Toggle (Mobil) ──────────────────────────────
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
         sidebar.classList.toggle('open');
     });
 }
 
-// ── Durum Mesajı ─────────────────────────────────────────────
+// ─── Durum Mesajı ──────────────────────────────────────────
 function setStatus(message, type) {
     statusEl.textContent = message;
     statusEl.className = type ? `status-msg ${type}` : 'status-msg';
 }
 
-// ── Chart.js Yapılandırma ────────────────────────────────────
+// ─── Chart.js Yapılandırma ──────────────────────────────
 Chart.defaults.color = '#94a3b8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 
@@ -130,12 +136,12 @@ const platformBarChart = new Chart(
     }
 );
 
-// ── API Çağrıları ────────────────────────────────────────────
+// ─── API Çağrıları ──────────────────────────────────────────
 
 // Duygu analizi dağılımını backend'den çek
 async function fetchSentiments() {
     try {
-        const res = await fetch(`${API_BASE}/sentiments`);
+        const res = await fetch(`${API_BASE}/sentiments`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Backend kapalı');
         const data = await res.json();
 
@@ -162,7 +168,7 @@ async function fetchSentiments() {
 // Trend verilerini backend'den çek
 async function fetchTrends() {
     try {
-        const res = await fetch(`${API_BASE}/trends`);
+        const res = await fetch(`${API_BASE}/trends`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Backend kapalı');
         const data = await res.json();
         trendCountEl.textContent = data.length;
@@ -172,20 +178,23 @@ async function fetchTrends() {
     }
 }
 
+let allPosts = [];
+
 // Son postları backend'den çek ve tabloya yaz
 async function fetchRecentPosts() {
     try {
-        const res = await fetch(`${API_BASE}/social-media-posts`);
+        const res = await fetch(`${API_BASE}/social-media-posts`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Backend kapalı');
-        const posts = await res.json();
-        renderPostsTable(posts);
+        allPosts = await res.json();
+        renderPostsTable(allPosts);
     } catch (e) {
         console.warn('Posts API erişilemedi, simülasyon verisi kullanılıyor:', e.message);
-        renderPostsTable(SAMPLE_POSTS);
+        allPosts = SAMPLE_POSTS;
+        renderPostsTable(allPosts);
     }
 }
 
-// ── Tablo Render ─────────────────────────────────────────────
+// ─── Tablo Render ──────────────────────────────────────────
 function renderPostsTable(posts) {
     const tbody = document.getElementById('postsBody');
     tbody.innerHTML = '';
@@ -197,20 +206,48 @@ function renderPostsTable(posts) {
         const labelTR = label === 'POSITIVE' ? 'Pozitif'
                       : label === 'NEGATIVE' ? 'Negatif' : 'Nötr';
         const date = post.publishedAt ? new Date(post.publishedAt).toLocaleString('tr-TR') : '—';
+        
+        const contentStr = (post.content || '');
+        const truncated = contentStr.substring(0, 80) + (contentStr.length > 80 ? '…' : '');
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${post.platform || '—'}</td>
             <td>${post.authorUsername || '—'}</td>
-            <td>${(post.content || '').substring(0, 80)}${(post.content || '').length > 80 ? '…' : ''}</td>
+            <td class="clickable-text" title="Tamamını okumak için tıklayın">${truncated}</td>
             <td><span class="badge ${badgeClass}">${labelTR}</span></td>
             <td>${date}</td>
         `;
+        
+        // Tıklayınca modalı aç
+        tr.children[2].addEventListener('click', () => showPostModal(post));
+        
         tbody.appendChild(tr);
     });
 }
 
-// ── Simülasyon Verisi ────────────────────────────────────────
+// ─── Modal İşlevleri ───────────────────────────────────────
+function showPostModal(post) {
+    modalPostContent.textContent = post.content || 'İçerik yok';
+    modalPostMeta.innerHTML = `
+        <span><b>Platform:</b> ${post.platform || '—'}</span> | 
+        <span><b>Yazar:</b> ${post.authorUsername || '—'}</span> | 
+        <span><b>Tarih:</b> ${post.publishedAt ? new Date(post.publishedAt).toLocaleString('tr-TR') : '—'}</span>
+    `;
+    postModal.style.display = 'block';
+}
+
+closeModalBtn.addEventListener('click', () => {
+    postModal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === postModal) {
+        postModal.style.display = 'none';
+    }
+});
+
+// ─── Simülasyon Verisi ───────────────────────────────────
 const SAMPLE_POSTS = [
     { platform: 'Twitter', authorUsername: '@analizci', content: 'Bu teknoloji harika bir gelişme! Yapay zeka dünyayı değiştirecek.', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T10:30:00Z' },
     { platform: 'Facebook', authorUsername: 'teknoloji_fan', content: 'Yeni güncelleme berbat olmuş, eski hali çok daha iyiydi.', sentimentLabel: 'NEGATIVE', publishedAt: '2026-05-14T09:15:00Z' },
@@ -219,28 +256,44 @@ const SAMPLE_POSTS = [
     { platform: 'Reddit', authorUsername: 'dev_user42', content: 'Kafka cluster kurulumu düşündüğümden zor oldu ama sonuç mükemmel.', sentimentLabel: 'POSITIVE', publishedAt: '2026-05-14T06:30:00Z' },
 ];
 
-// ── Arama İşlevi ─────────────────────────────────────────────
-async function handleSearch() {
-    const query = searchInput.value.trim();
-    if (!query) { setStatus('Lütfen bir anahtar kelime girin.', 'error'); return; }
-    setStatus(`'${query}' için aranıyor...`, '');
-    try {
-        const res = await fetch(`${API_BASE}/social-media-posts`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ platform: 'search', content: query, externalId: 'search-' + Date.now() })
-        });
-        if (!res.ok) throw new Error('Backend kapalı');
-        setStatus(`'${query}' sorgusu başarıyla gönderildi.`, 'success');
-    } catch (e) {
-        setStatus(`Backend erişilemedi. Simülasyon modunda çalışılıyor.`, 'error');
+// ─── Arama İşlevi ──────────────────────────────────────────
+function handleSearch() {
+    const query = searchInput.value.trim().toLowerCase();
+    if (!query) { 
+        renderPostsTable(allPosts);
+        setStatus('Tüm gönderiler listeleniyor.', 'success');
+        return; 
     }
+    
+    const filtered = allPosts.filter(post => 
+        (post.content && post.content.toLowerCase().includes(query)) ||
+        (post.authorUsername && post.authorUsername.toLowerCase().includes(query)) ||
+        (post.platform && post.platform.toLowerCase().includes(query))
+    );
+    
+    renderPostsTable(filtered);
+    setStatus(`'${query}' için ${filtered.length} sonuç bulundu.`, 'success');
 }
 
-searchBtn.addEventListener('click', handleSearch);
-searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
+let searchTimeout = null;
 
-// ── Sayfa Yüklendiğinde ──────────────────────────────────────
+searchBtn.addEventListener('click', handleSearch);
+searchInput.addEventListener('input', e => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        if (searchInput.value.trim()) {
+            handleSearch();
+        }
+    }, 300);
+});
+searchInput.addEventListener('keydown', e => { 
+    if (e.key === 'Enter') {
+        clearTimeout(searchTimeout);
+        handleSearch();
+    }
+});
+
+// ─── Sayfa Yüklendiğinde ─────────────────────────────────
 fetchSentiments();
 fetchTrends();
 fetchRecentPosts();
