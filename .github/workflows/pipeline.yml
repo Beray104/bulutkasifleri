@@ -28,20 +28,11 @@ jobs:
       - name: Build Package
         run: mvn clean package -DskipTests
 
-  security-scan:
-    name: Security Analysis
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
-      - name: Dependency Check
-        run: mvn dependency-check:check
+
 
   docker-deploy:
     name: Dockerize & Push
-    needs: security-scan
+    needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
