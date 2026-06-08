@@ -10,6 +10,8 @@
         if (sessionStorage.getItem('bk_auth') !== '1') {
             window.location.replace('login.html');
         }
+        // Kayıtlı temayı erken uygula (yanıp sönmeyi önler)
+        document.documentElement.setAttribute('data-theme', localStorage.getItem('bk_theme') || 'dark');
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -51,7 +53,8 @@
                 <button id="searchBtn" class="btn-search" aria-label="Ara">🔍</button>
             </div>
             <div class="topbar-actions">
-                <span class="live-indicator" id="liveIndicator">● Canlı</span>
+                <span class="live-indicator" id="liveIndicator" title="Canlı akışı başlat/durdur">● Canlı</span>
+                <button class="btn-icon" id="themeToggle" title="Tema değiştir" aria-label="Tema değiştir">🌙</button>
                 <button class="btn-logout" id="logoutBtn">Çıkış</button>
             </div>
         </header>
@@ -124,6 +127,26 @@
         <!-- ═══════════ GÖRÜNÜM: DUYGU ANALİZİ ═══════════ -->
         <section class="view" id="view-sentiment">
             <h2 class="view-title">😊 Duygu Analizi</h2>
+
+            <!-- Canlı Duygu Testi: asıl algoritmayı tarayıcıda çalıştırır -->
+            <div class="card" id="sentimentTesterCard" style="max-width: 720px; margin: 0 auto 24px;">
+                <h3 class="card-title">🧪 Canlı Duygu Testi</h3>
+                <p class="tester-hint">Bir cümle yaz, algoritma anında pozitif / negatif / nötr olarak sınıflandırsın.</p>
+                <textarea id="sentimentInput" class="sentiment-input" rows="3"
+                          placeholder="Örn: Bu ürün harika değil, hiç beğenmedim"></textarea>
+                <div class="tester-actions">
+                    <button id="analyzeBtn" class="login-btn tester-btn">Analiz Et</button>
+                    <div id="sentimentResult" class="sentiment-result"></div>
+                </div>
+                <div class="tester-examples">
+                    Hızlı dene:
+                    <button class="example-chip" data-text="Bu ürün harika çok memnun kaldım">olumlu</button>
+                    <button class="example-chip" data-text="İyi değil berbat">olumsuz</button>
+                    <button class="example-chip" data-text="Bu ürün iyi mi?">soru</button>
+                    <button class="example-chip" data-text="Toplantı saat 3 te">nötr</button>
+                </div>
+            </div>
+
             <div class="card chart-card" id="sentimentChartCard" style="max-width: 560px; margin: 0 auto;">
                 <h3 class="card-title">Duygu Analizi Dağılımı</h3>
                 <div class="chart-container">

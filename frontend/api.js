@@ -381,7 +381,176 @@ searchInput.addEventListener('keydown', e => {
     }
 });
 
-// ─── Sayfa Yüklendiğinde ─────────────────────────────────
-fetchSentiments();
-fetchTrends();
-fetchRecentPosts();
+// ═══════════════════════════════════════════════════════════
+//  ÖZELLİK 1 — Canlı Duygu Analizi (algoritma tarayıcıda)
+//  Backend testindeki "yeni algoritma"nın birebir JS karşılığı:
+//  ağırlıklı sözlük + kapsamlı (scoped) olumsuzlama + kural tabanlı.
+// ═══════════════════════════════════════════════════════════
+function analyzeSentiment(content) {
+    if (!content || !content.trim()) return { label: null, score: 0 };
+    const lower = content.toLowerCase();
+    const tokens = lower.replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/).filter(Boolean);
+
+    const posWeights = {};
+    ['mükemmel','mukemmel','harika','süper','super','excellent','amazing','outstanding','perfect','wonderful','love'].forEach(w => posWeights[w] = 3);
+    ['iyi','güzel','guzel','başarılı','basarili','good','great','happy','nice','cool'].forEach(w => posWeights[w] = 2);
+    ['tamam','fena','ok','fine','okay','decent','alright'].forEach(w => posWeights[w] = 1);
+
+    const negWeights = {};
+    ['berbat','rezalet','korkunç','korkunc','terrible','horrible','awful','hate','worst'].forEach(w => negWeights[w] = 3);
+    ['kötü','kotu','üzücü','uzucu','başarısız','basarisiz','bad','sad','angry','upset','poor','fail'].forEach(w => negWeights[w] = 2);
+    ['vasat','sıradan','siradan','boring','dull','mediocre'].forEach(w => negWeights[w] = 1);
+
+    const scores = tokens.map(t => posWeights[t] ? posWeights[t] : (negWeights[t] ? -negWeights[t] : 0));
+
+    const postNeg = new Set(['değil','degil']);
+    const preNeg  = new Set(['yok','olmaz','hayır','hayir','hiç','hic','not','no','never']);
+    for (let i = 0; i < tokens.length; i++) {
+        if (postNeg.has(tokens[i])) {
+            for (let j = i - 1; j >= 0 && j >= i - 2; j--) { if (scores[j] !== 0) { scores[j] = -scores[j]; break; } }
+        } else if (preNeg.has(tokens[i])) {
+            for (let j = i + 1; j < tokens.length && j <= i + 3; j++) { if (scores[j] !== 0) { scores[j] = -scores[j]; break; } }
+        }
+    }
+    let raw = scores.reduce((a, b) => a + b, 0);
+
+    const upper = (content.match(/[A-ZÇĞİÖŞÜ]/g) || []).length;
+    if (upper / (content.length + 1) > 0.3) raw = Math.round(raw * 1.2);
+
+    if (content.includes('?') && Math.abs(raw) < 3) return { label: 'NEUTRAL', score: raw };
+    if (raw > 0) return { label: 'POSITIVE', score: raw };
+    if (raw < 0) return { label: 'NEGATIVE', score: raw };
+    return { label: 'NEUTRAL', score: raw };
+}
+
+const LABEL_TR = {
+    POSITIVE: ['Pozitif', 'badge-positive', '😊'],
+    NEGATIVE: ['Negatif', 'badge-negative', '😞'],
+    NEUTRAL:  ['Nötr',    'badge-neutral',  '😐']
+};
+
+const sentimentInput  = document.getElementById('sentimentInput');
+const analyzeBtn      = document.getElementById('analyzeBtn');
+const sentimentResult = document.getElementById('sentimentResult');
+
+function renderSentimentResult(text) {
+    const { label, score } = analyzeSentiment(text);
+    if (!label) { sentimentResult.innerHTML = ''; return; }
+    const [tr, cls, emoji] = LABEL_TR[label];
+    sentimentResult.innerHTML =
+        `<span class="badge ${cls}" style="font-size:0.95rem;padding:6px 16px;">${emoji} ${tr}</span>` +
+        `<span class="result-score">skor: ${score}</span>`;
+}
+
+if (analyzeBtn && sentimentInput) {
+    analyzeBtn.addEventListener('click', () => renderSentimentResult(sentimentInput.value));
+    sentimentInput.addEventListener('input', () => renderSentimentResult(sentimentInput.value));
+    document.querySelectorAll('.example-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            sentimentInput.value = chip.dataset.text;
+            renderSentimentResult(sentimentInput.value);
+        });
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ÖZELLİK 2 — Tema Değiştirici (koyu / açık)
+// ═══════════════════════════════════════════════════════════
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (themeToggle) themeToggle.textContent = theme === 'light' ? '☀️' : '🌙';
+    localStorage.setItem('bk_theme', theme);
+}
+if (themeToggle) {
+    applyTheme(localStorage.getItem('bk_theme') || 'dark');
+    themeToggle.addEventListener('click', () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        applyTheme(next);
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ÖZELLİK 3 — Canlı Akış Simülasyonu
+//  Birkaç saniyede bir yeni post üretir; duygu etiketini yukarıdaki
+//  algoritma belirler; özet kartları ve pasta grafik canlı güncellenir.
+// ═══════════════════════════════════════════════════════════
+const STREAM_PLATFORMS = ['Twitter', 'Facebook', 'Instagram', 'Reddit'];
+const STREAM_AUTHORS = ['ahmet_y', 'selin_k', 'baris_d', 'ece_nur', 'kaan_m', 'derya_s', 'tolga_a', 'pelin_u', 'umut_c', 'nazli_t'];
+const STREAM_CONTENTS = [
+    'Bu uygulama gerçekten harika, çok memnun kaldım!',
+    'Yeni güncelleme berbat olmuş, hiç beğenmedim.',
+    'Bugün hava bulutlu, toplantı saat 3 te.',
+    'Müşteri hizmetleri çok kötü, rezalet bir deneyim.',
+    'Ürün kalitesi mükemmel, kesinlikle tavsiye ederim.',
+    'Kargo geç geldi ama paketleme güzeldi.',
+    'Bu film fena değil, izlenebilir.',
+    'Yapay zeka konferansı için kayıtlar açıldı.',
+    'Telefonun pili çok kötü, sürekli şarj gerekiyor.',
+    'Harika bir gün geçirdik, her şey süperdi!',
+    'Sistem yine çöktü, bu kadar başarısız yazılım görmedim.',
+    'İyi değil berbat, paramı geri istiyorum.',
+    'Veri analizi sonuçları iyi çıktı, ekip başarılı.',
+    'Bu kafenin tatlıları muhteşem!',
+    'Uygulama iyi mi gerçekten?'
+];
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+let streamTimer = null;
+
+function refreshSummaryFromPosts() {
+    const counts = { POSITIVE: 0, NEGATIVE: 0, NEUTRAL: 0 };
+    allPosts.forEach(p => { counts[p.sentimentLabel] = (counts[p.sentimentLabel] || 0) + 1; });
+    const total = allPosts.length || 1;
+    totalPostsEl.textContent = allPosts.length.toLocaleString('tr-TR');
+    positiveRateEl.textContent = `%${((counts.POSITIVE / total) * 100).toFixed(0)}`;
+    negativeRateEl.textContent = `%${((counts.NEGATIVE / total) * 100).toFixed(0)}`;
+    updateSentimentData([counts.POSITIVE, counts.NEGATIVE, counts.NEUTRAL]);
+}
+
+function pushStreamPost() {
+    const content = pick(STREAM_CONTENTS);
+    const { label } = analyzeSentiment(content);
+    const post = {
+        platform: pick(STREAM_PLATFORMS),
+        authorUsername: pick(STREAM_AUTHORS),
+        content,
+        sentimentLabel: label || 'NEUTRAL',
+        publishedAt: new Date().toISOString()
+    };
+    allPosts.unshift(post);
+    if (allPosts.length > 60) allPosts.pop();
+
+    // Postlar görünümündeysek ve arama aktif değilse tabloyu tazele
+    const onPosts = document.getElementById('view-posts').classList.contains('active');
+    if (onPosts && !searchInput.value.trim()) {
+        renderPostsTable(allPosts);
+        const firstRow = document.querySelector('#postsBody tr');
+        if (firstRow) firstRow.classList.add('new-row');
+    }
+    refreshSummaryFromPosts();
+}
+
+function startStream() {
+    if (streamTimer) return;
+    streamTimer = setInterval(pushStreamPost, 4000);
+    liveIndicator.textContent = '● Canlı';
+    liveIndicator.classList.remove('paused');
+}
+function stopStream() {
+    clearInterval(streamTimer);
+    streamTimer = null;
+    liveIndicator.textContent = '⏸ Duraklatıldı';
+    liveIndicator.classList.add('paused');
+}
+if (liveIndicator) {
+    liveIndicator.addEventListener('click', () => { streamTimer ? stopStream() : startStream(); });
+}
+
+// ─── Sayfa Yüklendiğinde (sıralı) ────────────────────────
+(async function init() {
+    await fetchSentiments();
+    await fetchTrends();
+    await fetchRecentPosts();
+    startStream();   // canlı akışı başlat (durdurmak için "● Canlı"ya tıkla)
+})();
