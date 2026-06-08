@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Dağıtık Sosyal Medya Analiz Platformu - Trend ve duygu analizi dashboard'u">
     <title>Sosyal Medya Analiz Platformu — Dashboard</title>
+    <!-- Erişim koruması: giriş yapılmamışsa login sayfasına yönlendir -->
+    <script>
+        if (sessionStorage.getItem('bk_auth') !== '1') {
+            window.location.replace('login.html');
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -19,16 +25,16 @@
             <span class="brand-text">BulutKaşifleri</span>
         </div>
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" id="navDashboard">
+            <a href="#" class="nav-item active" data-view="dashboard" id="navDashboard">
                 <span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span>
             </a>
-            <a href="#trendChartCard" class="nav-item" id="navTrends">
+            <a href="#" class="nav-item" data-view="trends" id="navTrends">
                 <span class="nav-icon">📈</span><span class="nav-label">Trendler</span>
             </a>
-            <a href="#sentimentChartCard" class="nav-item" id="navSentiment">
+            <a href="#" class="nav-item" data-view="sentiment" id="navSentiment">
                 <span class="nav-icon">😊</span><span class="nav-label">Duygu Analizi</span>
             </a>
-            <a href="#recentPostsSection" class="nav-item" id="navPosts">
+            <a href="#" class="nav-item" data-view="posts" id="navPosts">
                 <span class="nav-icon">📝</span><span class="nav-label">Son Postlar</span>
             </a>
         </nav>
@@ -37,108 +43,119 @@
     <!-- ═══ Ana İçerik ═══ -->
     <main class="main-content">
 
-        <!-- ─── Üst Bar ─── -->
+        <!-- ─── Üst Bar (her görünümde sabit) ─── -->
         <header class="topbar">
             <button class="menu-toggle" id="menuToggle" aria-label="Menü aç/kapa">☰</button>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Anahtar kelime ara..." aria-label="Anahtar kelime arama">
+                <input type="text" id="searchInput" placeholder="Anahtar kelime, kullanıcı veya platform ara..." aria-label="Arama">
                 <button id="searchBtn" class="btn-search" aria-label="Ara">🔍</button>
             </div>
             <div class="topbar-actions">
                 <span class="live-indicator" id="liveIndicator">● Canlı</span>
+                <button class="btn-logout" id="logoutBtn">Çıkış</button>
             </div>
         </header>
 
-        <!-- ─── Özet Kartları ─── -->
-        <section class="summary-cards" aria-label="Özet metrikleri">
-            <div class="card summary-card" id="cardTotalPosts">
-                <div class="card-icon" style="background: rgba(99,102,241,0.15); color: #6366f1;">📊</div>
-                <div class="card-info">
-                    <span class="card-value" id="totalPosts">—</span>
-                    <span class="card-label">Toplam Post</span>
+        <!-- ═══════════ GÖRÜNÜM: DASHBOARD ═══════════ -->
+        <section class="view active" id="view-dashboard">
+            <h2 class="view-title">🏠 Genel Bakış</h2>
+            <section class="summary-cards" aria-label="Özet metrikleri">
+                <div class="card summary-card" id="cardTotalPosts">
+                    <div class="card-icon" style="background: rgba(99,102,241,0.15); color: #6366f1;">📊</div>
+                    <div class="card-info">
+                        <span class="card-value" id="totalPosts">—</span>
+                        <span class="card-label">Toplam Post</span>
+                    </div>
                 </div>
-            </div>
-            <div class="card summary-card" id="cardPositive">
-                <div class="card-icon" style="background: rgba(34,197,94,0.15); color: #22c55e;">😊</div>
-                <div class="card-info">
-                    <span class="card-value" id="positiveRate">—</span>
-                    <span class="card-label">Pozitif Oran</span>
+                <div class="card summary-card" id="cardPositive">
+                    <div class="card-icon" style="background: rgba(34,197,94,0.15); color: #22c55e;">😊</div>
+                    <div class="card-info">
+                        <span class="card-value" id="positiveRate">—</span>
+                        <span class="card-label">Pozitif Oran</span>
+                    </div>
                 </div>
-            </div>
-            <div class="card summary-card" id="cardNegative">
-                <div class="card-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">😞</div>
-                <div class="card-info">
-                    <span class="card-value" id="negativeRate">—</span>
-                    <span class="card-label">Negatif Oran</span>
+                <div class="card summary-card" id="cardNegative">
+                    <div class="card-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">😞</div>
+                    <div class="card-info">
+                        <span class="card-value" id="negativeRate">—</span>
+                        <span class="card-label">Negatif Oran</span>
+                    </div>
                 </div>
-            </div>
-            <div class="card summary-card" id="cardTrends">
-                <div class="card-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">🔥</div>
-                <div class="card-info">
-                    <span class="card-value" id="trendCount">—</span>
-                    <span class="card-label">Aktif Trend</span>
+                <div class="card summary-card" id="cardTrends">
+                    <div class="card-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">🔥</div>
+                    <div class="card-info">
+                        <span class="card-value" id="trendCount">—</span>
+                        <span class="card-label">Aktif Trend</span>
+                    </div>
                 </div>
-            </div>
+            </section>
+            <p class="view-hint">Soldaki menüden Trendler, Duygu Analizi ve Son Postlar görünümlerine geçebilirsin. Üstteki arama kutusu doğrudan gönderilerde arar.</p>
         </section>
 
-        <!-- ─── Grafik Satırı ─── -->
-        <section class="chart-row" aria-label="Analiz grafikleri">
-            <div class="card chart-card" id="sentimentChartCard">
-                <h3 class="card-title">Duygu Analizi Dağılımı</h3>
-                <div class="chart-container">
-                    <canvas id="sentimentPieChart"></canvas>
-                </div>
-            </div>
-            <div class="card chart-card" id="trendChartCard">
+        <!-- ═══════════ GÖRÜNÜM: TRENDLER ═══════════ -->
+        <section class="view" id="view-trends">
+            <h2 class="view-title">📈 Trendler</h2>
+            <div class="card chart-card" id="trendChartCard" style="margin-bottom: 24px;">
                 <h3 class="card-title">Trend Akışı (Son 24 Saat)</h3>
                 <div class="chart-container">
                     <canvas id="trendLineChart"></canvas>
                 </div>
             </div>
+            <section class="bottom-row" aria-label="Trend detayları">
+                <div class="card" id="trendingHashtagsCard">
+                    <h3 class="card-title">🔥 Trend Hashtag'ler</h3>
+                    <ul class="hashtag-list" id="hashtagList">
+                        <li class="hashtag-item"><span class="hashtag-name">#yapayZeka</span><span class="hashtag-count">1.2K</span></li>
+                        <li class="hashtag-item"><span class="hashtag-name">#teknoloji</span><span class="hashtag-count">980</span></li>
+                        <li class="hashtag-item"><span class="hashtag-name">#veriAnalizi</span><span class="hashtag-count">754</span></li>
+                        <li class="hashtag-item"><span class="hashtag-name">#bulut</span><span class="hashtag-count">621</span></li>
+                        <li class="hashtag-item"><span class="hashtag-name">#startup</span><span class="hashtag-count">489</span></li>
+                    </ul>
+                </div>
+                <div class="card" id="platformDistCard">
+                    <h3 class="card-title">Platform Dağılımı</h3>
+                    <div class="chart-container">
+                        <canvas id="platformBarChart"></canvas>
+                    </div>
+                </div>
+            </section>
         </section>
 
-        <!-- ─── Alt Satır: Hashtag Listesi + Platform Dağılımı ─── -->
-        <section class="bottom-row" aria-label="Detay bölümleri">
-            <div class="card" id="trendingHashtagsCard">
-                <h3 class="card-title">🔥 Trend Hashtag'ler</h3>
-                <ul class="hashtag-list" id="hashtagList">
-                    <li class="hashtag-item"><span class="hashtag-name">#yapayZeka</span><span class="hashtag-count">1.2K</span></li>
-                    <li class="hashtag-item"><span class="hashtag-name">#teknoloji</span><span class="hashtag-count">980</span></li>
-                    <li class="hashtag-item"><span class="hashtag-name">#veriAnalizi</span><span class="hashtag-count">754</span></li>
-                    <li class="hashtag-item"><span class="hashtag-name">#bulut</span><span class="hashtag-count">621</span></li>
-                    <li class="hashtag-item"><span class="hashtag-name">#startup</span><span class="hashtag-count">489</span></li>
-                </ul>
-            </div>
-            <div class="card" id="platformDistCard">
-                <h3 class="card-title">Platform Dağılımı</h3>
+        <!-- ═══════════ GÖRÜNÜM: DUYGU ANALİZİ ═══════════ -->
+        <section class="view" id="view-sentiment">
+            <h2 class="view-title">😊 Duygu Analizi</h2>
+            <div class="card chart-card" id="sentimentChartCard" style="max-width: 560px; margin: 0 auto;">
+                <h3 class="card-title">Duygu Analizi Dağılımı</h3>
                 <div class="chart-container">
-                    <canvas id="platformBarChart"></canvas>
+                    <canvas id="sentimentPieChart"></canvas>
                 </div>
             </div>
         </section>
 
-        <!-- ─── Son Postlar Tablosu ─── -->
-        <section class="card posts-section" id="recentPostsSection" aria-label="Son postlar">
-            <h3 class="card-title">📝 Son Postlar</h3>
-            <div class="table-wrapper">
-                <table class="posts-table" id="postsTable">
-                    <thead>
-                        <tr>
-                            <th>Platform</th>
-                            <th>Kullanıcı</th>
-                            <th>İçerik</th>
-                            <th>Duygu</th>
-                            <th>Tarih</th>
-                        </tr>
-                    </thead>
-                    <tbody id="postsBody">
-                        <!-- API'den doldurulacak -->
-                    </tbody>
-                </table>
-            </div>
+        <!-- ═══════════ GÖRÜNÜM: SON POSTLAR ═══════════ -->
+        <section class="view" id="view-posts">
+            <h2 class="view-title">📝 Son Postlar</h2>
+            <section class="card posts-section" id="recentPostsSection" aria-label="Son postlar">
+                <div class="table-wrapper">
+                    <table class="posts-table" id="postsTable">
+                        <thead>
+                            <tr>
+                                <th>Platform</th>
+                                <th>Kullanıcı</th>
+                                <th>İçerik</th>
+                                <th>Duygu</th>
+                                <th>Tarih</th>
+                            </tr>
+                        </thead>
+                        <tbody id="postsBody">
+                            <!-- API'den / örnek veriden doldurulacak -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </section>
 
-        <!-- ─── Durum Mesajı ─── -->
+        <!-- ─── Durum Mesajı (her görünümde) ─── -->
         <p id="statusMessage" class="status-msg" role="status" aria-live="polite"></p>
 
         <!-- ─── Post Detay Modalı ─── -->

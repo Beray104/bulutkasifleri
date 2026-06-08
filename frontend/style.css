@@ -81,6 +81,17 @@ body {
     width: calc(100% - var(--sidebar-width));
 }
 
+/* ── Görünümler (ayrı sayfa mantığı) ── */
+.view { display: none; animation: viewFadeIn 0.25s ease; }
+.view.active { display: block; }
+@keyframes viewFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.view-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; color: var(--text-primary); }
+.view-hint { margin-top: 24px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+.no-results { text-align: center; color: var(--text-muted); padding: 24px; font-style: italic; }
+
 /* ── Topbar ── */
 .topbar {
     display: flex;
@@ -240,7 +251,7 @@ body {
     .chart-container { height: 220px; }
 }
 
-/* �� Modal (A��l�r Pencere) �� */
+/* �� Modal (A��l�r Pencere) �� */
 .modal {
     display: none;
     position: fixed; z-index: 1000; left: 0; top: 0;
@@ -285,3 +296,78 @@ body {
     transition: color 0.2s;
 }
 .clickable-text:hover { color: var(--accent-blue); text-decoration: underline; }
+
+/* ═══════════════ Giriş Sayfası ═══════════════ */
+.login-body {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 20px;
+    background:
+        radial-gradient(900px circle at 20% 10%, rgba(99,102,241,0.18), transparent 45%),
+        radial-gradient(900px circle at 85% 90%, rgba(168,85,247,0.15), transparent 45%),
+        var(--bg-primary);
+}
+.login-wrapper { width: 100%; max-width: 400px; }
+.login-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 36px 32px;
+    display: flex; flex-direction: column;
+}
+.login-logo {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-bottom: 24px;
+}
+.login-logo .brand-icon { font-size: 1.8rem; }
+.login-logo .brand-text { font-size: 1.3rem; font-weight: 700; color: var(--accent-blue); }
+.login-title { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 4px; }
+.login-subtitle { font-size: 0.88rem; color: var(--text-muted); text-align: center; margin-bottom: 28px; }
+
+.login-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.login-field span { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
+.login-field input {
+    padding: 11px 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: var(--font); font-size: 0.95rem;
+    transition: border-color var(--transition);
+}
+.login-field input:focus { outline: none; border-color: var(--accent-blue); }
+.login-field input::placeholder { color: var(--text-muted); }
+
+.login-error {
+    display: none;
+    background: rgba(239,68,68,0.12);
+    color: var(--accent-red);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 8px;
+    padding: 9px 12px; font-size: 0.85rem; margin-bottom: 16px; text-align: center;
+}
+.login-error.show { display: block; }
+
+.login-btn {
+    padding: 12px; border: none; border-radius: 8px;
+    background: var(--accent-blue); color: #fff;
+    font-family: var(--font); font-size: 0.98rem; font-weight: 600;
+    cursor: pointer; transition: background var(--transition);
+}
+.login-btn:hover { background: #4f46e5; }
+
+.login-hint { margin-top: 20px; text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+.login-hint code {
+    background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px;
+    color: var(--text-secondary); font-size: 0.78rem;
+}
+
+/* Çıkış butonu (topbar) */
+.btn-logout {
+    background: none; border: 1px solid var(--border-color);
+    color: var(--text-secondary); cursor: pointer;
+    padding: 6px 12px; border-radius: 8px; font-size: 0.82rem;
+    font-family: var(--font);
+    transition: background var(--transition), color var(--transition);
+}
+.btn-logout:hover { background: rgba(239,68,68,0.12); color: var(--accent-red); border-color: rgba(239,68,68,0.3); }

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş — Sosyal Medya Analiz Platformu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+
+    <div class="login-wrapper">
+        <form class="login-card" id="loginForm" autocomplete="on">
+            <div class="login-logo">
+                <span class="brand-icon">📊</span>
+                <span class="brand-text">BulutKaşifleri</span>
+            </div>
+            <h1 class="login-title">Giriş Yap</h1>
+            <p class="login-subtitle">Sosyal Medya Analiz Platformu</p>
+
+            <label class="login-field">
+                <span>Kullanıcı Adı</span>
+                <input type="text" id="username" name="username" placeholder="kullanıcı adınız"
+                       autocomplete="username" required autofocus>
+            </label>
+
+            <label class="login-field">
+                <span>Şifre</span>
+                <input type="password" id="password" name="password" placeholder="••••••••"
+                       autocomplete="current-password" required>
+            </label>
+
+            <p class="login-error" id="loginError" role="alert"></p>
+
+            <button type="submit" class="login-btn">Giriş Yap</button>
+
+            <p class="login-hint">Demo girişi: <code>admin</code> / <code>admin123</code></p>
+        </form>
+    </div>
+
+    <script src="login.js" defer></script>
+</body>
+</html>
