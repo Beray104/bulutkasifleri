@@ -45,6 +45,16 @@ function showView(name) {
     // Görünüm artık görünür; grafikleri ilk gösterimde (boyutlu konteynerde) kur
     if (name === 'trends')    ensureTrendCharts();
     if (name === 'sentiment') ensureSentimentChart();
+    // Düzen oturduktan sonra grafiği konteyner boyutuna oturt
+    requestAnimationFrame(() => {
+        const fit = (chart) => {
+            if (!chart || !chart.canvas) return;
+            const box = chart.canvas.parentNode;
+            if (box.clientWidth > 0) chart.resize(box.clientWidth, box.clientHeight);
+        };
+        if (name === 'trends')    { fit(trendLineChart); fit(platformBarChart); }
+        if (name === 'sentiment') { fit(sentimentPieChart); }
+    });
 }
 
 navItems.forEach(item => {
@@ -81,6 +91,10 @@ let sentimentPieChart = null;
 let trendLineChart = null;
 let platformBarChart = null;
 let pendingSentimentData = null;   // grafik kurulmadan gelen veri burada bekler
+
+// Canlı trend geçmişi (akış grafiği bundan beslenir)
+const MAX_TREND_POINTS = 15;
+const liveTrend = { labels: [], pos: [], neg: [], neu: [] };
 
 // 1. Duygu Analizi Pie Chart — Duygu Analizi görünümünde
 function ensureSentimentChart() {
@@ -119,25 +133,25 @@ function ensureTrendCharts() {
         {
             type: 'line',
             data: {
-                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'],
+                labels: [...liveTrend.labels],
                 datasets: [
                     {
                         label: 'Pozitif',
-                        data: [20, 35, 60, 80, 95, 70, 55],
+                        data: [...liveTrend.pos],
                         borderColor: '#22c55e',
                         backgroundColor: 'rgba(34,197,94,0.1)',
                         fill: true, tension: 0.4, pointRadius: 3
                     },
                     {
                         label: 'Negatif',
-                        data: [15, 20, 30, 25, 40, 35, 28],
+                        data: [...liveTrend.neg],
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239,68,68,0.1)',
                         fill: true, tension: 0.4, pointRadius: 3
                     },
                     {
                         label: 'Nötr',
-                        data: [30, 25, 40, 50, 45, 38, 42],
+                        data: [...liveTrend.neu],
                         borderColor: '#f59e0b',
                         backgroundColor: 'rgba(245,158,11,0.1)',
                         fill: true, tension: 0.4, pointRadius: 3
@@ -164,7 +178,7 @@ function ensureTrendCharts() {
                 labels: ['Twitter', 'Facebook', 'Instagram', 'Reddit'],
                 datasets: [{
                     label: 'Post Sayısı',
-                    data: [420, 280, 350, 150],
+                    data: platformCounts(),
                     backgroundColor: ['#6366f1', '#3b82f6', '#a855f7', '#f97316'],
                     borderRadius: 6,
                     barThickness: 36
@@ -508,6 +522,55 @@ function refreshSummaryFromPosts() {
     updateSentimentData([counts.POSITIVE, counts.NEGATIVE, counts.NEUTRAL]);
 }
 
+// Platform bazında post sayıları (bar grafik için)
+function platformCounts() {
+    const c = { Twitter: 0, Facebook: 0, Instagram: 0, Reddit: 0 };
+    allPosts.forEach(p => { if (c[p.platform] !== undefined) c[p.platform]++; });
+    return [c.Twitter, c.Facebook, c.Instagram, c.Reddit];
+}
+
+// Trend geçmişine yeni nokta ekle ve çizgi grafiği canlı güncelle
+function recordTrendPoint() {
+    const counts = { POSITIVE: 0, NEGATIVE: 0, NEUTRAL: 0 };
+    allPosts.forEach(p => { counts[p.sentimentLabel] = (counts[p.sentimentLabel] || 0) + 1; });
+    const t = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    liveTrend.labels.push(t);
+    liveTrend.pos.push(counts.POSITIVE);
+    liveTrend.neg.push(counts.NEGATIVE);
+    liveTrend.neu.push(counts.NEUTRAL);
+    if (liveTrend.labels.length > MAX_TREND_POINTS) {
+        liveTrend.labels.shift(); liveTrend.pos.shift(); liveTrend.neg.shift(); liveTrend.neu.shift();
+    }
+    if (trendLineChart) {
+        trendLineChart.data.labels = [...liveTrend.labels];
+        trendLineChart.data.datasets[0].data = [...liveTrend.pos];
+        trendLineChart.data.datasets[1].data = [...liveTrend.neg];
+        trendLineChart.data.datasets[2].data = [...liveTrend.neu];
+        trendLineChart.update();
+    }
+}
+
+// Platform (bar) grafiğini canlı güncelle
+function updatePlatformChart() {
+    if (!platformBarChart) return;
+    platformBarChart.data.datasets[0].data = platformCounts();
+    platformBarChart.update();
+}
+
+// Başlangıçta trend geçmişini birkaç noktayla doldur (grafik boş açılmasın)
+function seedTrendHistory() {
+    const counts = { POSITIVE: 0, NEGATIVE: 0, NEUTRAL: 0 };
+    allPosts.forEach(p => { counts[p.sentimentLabel] = (counts[p.sentimentLabel] || 0) + 1; });
+    const now = Date.now();
+    for (let i = 4; i >= 1; i--) {
+        const t = new Date(now - i * 4000).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        liveTrend.labels.push(t);
+        liveTrend.pos.push(counts.POSITIVE);
+        liveTrend.neg.push(counts.NEGATIVE);
+        liveTrend.neu.push(counts.NEUTRAL);
+    }
+}
+
 function pushStreamPost() {
     const content = pick(STREAM_CONTENTS);
     const { label } = analyzeSentiment(content);
@@ -529,6 +592,8 @@ function pushStreamPost() {
         if (firstRow) firstRow.classList.add('new-row');
     }
     refreshSummaryFromPosts();
+    recordTrendPoint();      // canlı trend çizgisi
+    updatePlatformChart();   // canlı platform grafiği
 }
 
 function startStream() {
@@ -552,5 +617,6 @@ if (liveIndicator) {
     await fetchSentiments();
     await fetchTrends();
     await fetchRecentPosts();
-    startStream();   // canlı akışı başlat (durdurmak için "● Canlı"ya tıkla)
+    seedTrendHistory();   // trend grafiği boş açılmasın
+    startStream();        // canlı akışı başlat (durdurmak için "● Canlı"ya tıkla)
 })();
