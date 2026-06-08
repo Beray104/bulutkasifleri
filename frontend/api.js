@@ -64,6 +64,25 @@ navItems.forEach(item => {
     });
 });
 
+// ─── Verileri Yenile (istek sırasında buton kilidi) ──────
+// Mükerrer istekleri önlemek için işlem boyunca buton disabled olur.
+const refreshBtn = document.getElementById('refreshBtn');
+async function refreshData() {
+    if (!refreshBtn || refreshBtn.disabled) return;   // zaten işlemdeyse yoksay
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add('spin');
+    setStatus('Veriler yenileniyor...', '');
+    try {
+        await Promise.all([fetchSentiments(), fetchTrends(), fetchRecentPosts()]);
+        await new Promise(r => setTimeout(r, 600));   // kilit görünür olsun
+        setStatus('Veriler güncellendi.', 'success');
+    } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.classList.remove('spin');
+    }
+}
+if (refreshBtn) refreshBtn.addEventListener('click', refreshData);
+
 // ─── Çıkış ───────────────────────────────────────────────
 const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) {

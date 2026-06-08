@@ -394,6 +394,9 @@ body {
     transition: background var(--transition), border-color var(--transition);
 }
 .btn-icon:hover { background: var(--bg-card-hover); border-color: var(--accent-blue); }
+.btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-icon.spin { animation: spin360 0.8s linear infinite; }
+@keyframes spin360 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* ── Canlı göstergesi (tıklanabilir / duraklatılmış) ── */
 .live-indicator { cursor: pointer; user-select: none; }
