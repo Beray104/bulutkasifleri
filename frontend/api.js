@@ -2,7 +2,9 @@
 // Sosyal Medya Analiz Platformu — Dashboard API & Grafik Mantığı
 // ─────────────────────────────────────────────────────────────────
 
-const API_BASE = 'http://localhost:8080/api/v1';
+const IS_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const API_BASE = window.APP_CONFIG?.API_BASE_URL
+    || (IS_LOCAL ? 'http://localhost:8080/api/v1' : `${window.location.origin}/api/v1`);
 
 // ─── DOM Referansları ──────────────────────────────────────────
 const searchInput     = document.getElementById('searchInput');
@@ -415,11 +417,9 @@ searchInput.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════════════════
-//  ÖZELLİK 1 — Canlı Duygu Analizi (algoritma tarayıcıda)
-//  Backend testindeki "yeni algoritma"nın birebir JS karşılığı:
-//  ağırlıklı sözlük + kapsamlı (scoped) olumsuzlama + kural tabanlı.
+//  Yerel duygu algoritması yalnızca sahte canlı akış verisini etiketler.
 // ═══════════════════════════════════════════════════════════
-function analyzeSentiment(content) {
+function analyzeSentimentLocally(content) {
     if (!content || !content.trim()) return { label: null, score: 0 };
     const lower = content.toLowerCase();
     const tokens = lower.replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/).filter(Boolean);
@@ -466,22 +466,79 @@ const sentimentInput  = document.getElementById('sentimentInput');
 const analyzeBtn      = document.getElementById('analyzeBtn');
 const sentimentResult = document.getElementById('sentimentResult');
 
-function renderSentimentResult(text) {
-    const { label, score } = analyzeSentiment(text);
-    if (!label) { sentimentResult.innerHTML = ''; return; }
-    const [tr, cls, emoji] = LABEL_TR[label];
-    sentimentResult.innerHTML =
-        `<span class="badge ${cls}" style="font-size:0.95rem;padding:6px 16px;">${emoji} ${tr}</span>` +
-        `<span class="result-score">skor: ${score}</span>`;
+function renderSentimentResult(result) {
+    sentimentResult.className = 'sentiment-result';
+    sentimentResult.replaceChildren();
+
+    const [tr, cls, emoji] = LABEL_TR[result.label] || LABEL_TR.NEUTRAL;
+    const badge = document.createElement('span');
+    badge.className = `badge ${cls}`;
+    badge.style.cssText = 'font-size:0.95rem;padding:6px 16px;';
+    badge.textContent = `${emoji} ${tr}`;
+
+    const confidence = document.createElement('span');
+    confidence.className = 'result-score';
+    confidence.textContent = `güven: %${Math.round(result.confidence * 100)}`;
+
+    const explanation = document.createElement('p');
+    explanation.className = 'result-explanation';
+    explanation.textContent = result.explanation;
+
+    const model = document.createElement('span');
+    model.className = 'result-model';
+    model.textContent = `Model: ${result.model}`;
+
+    sentimentResult.append(badge, confidence, explanation, model);
+}
+
+function renderSentimentError(message) {
+    sentimentResult.className = 'sentiment-result error';
+    sentimentResult.textContent = message;
+}
+
+async function requestSentimentAnalysis() {
+    const text = sentimentInput.value.trim();
+    if (!text) {
+        renderSentimentError('Analiz etmek için bir metin yazmalısın.');
+        return;
+    }
+    if (analyzeBtn.disabled) return;
+
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = 'Analiz ediliyor...';
+    sentimentResult.className = 'sentiment-result';
+    sentimentResult.textContent = 'Groq modeli metni değerlendiriyor...';
+
+    try {
+        const response = await fetch(`${API_BASE}/sentiment-analysis`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(body.message || 'Duygu analizi tamamlanamadı.');
+        }
+        renderSentimentResult(body);
+    } catch (error) {
+        renderSentimentError(error.message || 'Duygu analizi sırasında bağlantı hatası oluştu.');
+    } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = 'Analiz Et';
+    }
 }
 
 if (analyzeBtn && sentimentInput) {
-    analyzeBtn.addEventListener('click', () => renderSentimentResult(sentimentInput.value));
-    sentimentInput.addEventListener('input', () => renderSentimentResult(sentimentInput.value));
+    analyzeBtn.addEventListener('click', requestSentimentAnalysis);
+    sentimentInput.addEventListener('keydown', event => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            requestSentimentAnalysis();
+        }
+    });
     document.querySelectorAll('.example-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             sentimentInput.value = chip.dataset.text;
-            renderSentimentResult(sentimentInput.value);
+            requestSentimentAnalysis();
         });
     });
 }
@@ -592,7 +649,7 @@ function seedTrendHistory() {
 
 function pushStreamPost() {
     const content = pick(STREAM_CONTENTS);
-    const { label } = analyzeSentiment(content);
+    const { label } = analyzeSentimentLocally(content);
     const post = {
         platform: pick(STREAM_PLATFORMS),
         authorUsername: pick(STREAM_AUTHORS),

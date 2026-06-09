@@ -1,11 +1,14 @@
 package com.eren.social_media_analysis.controller;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
+import com.eren.social_media_analysis.dto.SentimentAnalysisRequest;
+import com.eren.social_media_analysis.dto.SentimentAnalysisResponse;
 import com.eren.social_media_analysis.dto.SentimentSummaryResponse;
 import com.eren.social_media_analysis.dto.SocialMediaMessage;
 import com.eren.social_media_analysis.dto.SocialMediaPostResponse;
 import com.eren.social_media_analysis.dto.TrendResponse;
 import com.eren.social_media_analysis.kafka.KafkaProducer;
+import com.eren.social_media_analysis.service.GroqSentimentService;
 import com.eren.social_media_analysis.service.SocialMediaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -25,10 +28,16 @@ public class SocialMediaController {
 
 	private final SocialMediaService socialMediaService;
 	private final KafkaProducer kafkaProducer;
+	private final GroqSentimentService groqSentimentService;
 
-	public SocialMediaController(SocialMediaService socialMediaService, KafkaProducer kafkaProducer) {
+	public SocialMediaController(
+			SocialMediaService socialMediaService,
+			KafkaProducer kafkaProducer,
+			GroqSentimentService groqSentimentService
+	) {
 		this.socialMediaService = socialMediaService;
 		this.kafkaProducer = kafkaProducer;
+		this.groqSentimentService = groqSentimentService;
 	}
 
 	// Frontend trend verilerini bu endpoint Ã¼zerinden Ã§eker.
@@ -41,6 +50,13 @@ public class SocialMediaController {
 	@GetMapping("/sentiments")
 	public List<SentimentSummaryResponse> getSentiments() {
 		return socialMediaService.getSentimentSummary();
+	}
+
+	@PostMapping("/sentiment-analysis")
+	public SentimentAnalysisResponse analyzeSentiment(
+			@Valid @RequestBody SentimentAnalysisRequest request
+	) {
+		return groqSentimentService.analyze(request.text());
 	}
 
 	// Veri toplama katmanÄ±ndan gelen ham iÃ§eriÄŸi Kafka kuyruÄŸuna aktarÄ±r.

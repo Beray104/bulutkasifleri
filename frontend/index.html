@@ -129,11 +129,12 @@
         <section class="view" id="view-sentiment">
             <h2 class="view-title">😊 Duygu Analizi</h2>
 
-            <!-- Canlı Duygu Testi: asıl algoritmayı tarayıcıda çalıştırır -->
+            <!-- Canlı Duygu Testi: backend üzerinden Groq API kullanır -->
             <div class="card" id="sentimentTesterCard" style="max-width: 720px; margin: 0 auto 24px;">
                 <h3 class="card-title">🧪 Canlı Duygu Testi</h3>
-                <p class="tester-hint">Bir cümle yaz, algoritma anında pozitif / negatif / nötr olarak sınıflandırsın.</p>
+                <p class="tester-hint">Bir cümle yaz, Groq modeli bağlamı değerlendirerek pozitif / negatif / nötr olarak sınıflandırsın.</p>
                 <textarea id="sentimentInput" class="sentiment-input" rows="3"
+                          maxlength="2000"
                           placeholder="Örn: Bu ürün harika değil, hiç beğenmedim"></textarea>
                 <div class="tester-actions">
                     <button id="analyzeBtn" class="login-btn tester-btn">Analiz Et</button>

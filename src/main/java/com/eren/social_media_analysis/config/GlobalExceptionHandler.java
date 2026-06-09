@@ -1,5 +1,6 @@
 package com.eren.social_media_analysis.config;
 
+import com.eren.social_media_analysis.service.SentimentAnalysisUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -57,6 +58,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(buildErrorResponse(correlationId, "KAFKA_ERROR",
                         "MesajlaÅŸma servisi geÃ§ici olarak kullanÄ±lamÄ±yor.", 503));
+    }
+
+    @ExceptionHandler(SentimentAnalysisUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleSentimentAnalysisUnavailable(
+            SentimentAnalysisUnavailableException ex
+    ) {
+        String correlationId = UUID.randomUUID().toString();
+
+        log.warn("[HATA-RAPOR] correlationId={}, tip=SENTIMENT_ANALYSIS_UNAVAILABLE, mesaj={}",
+                correlationId, ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(buildErrorResponse(
+                        correlationId,
+                        "SENTIMENT_ANALYSIS_UNAVAILABLE",
+                        ex.getMessage(),
+                        503
+                ));
     }
 
     /**
