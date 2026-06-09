@@ -9,15 +9,7 @@
 ![Elasticsearch](https://img.shields.io/badge/Elasticsearch-8.15-005571?logo=elasticsearch&logoColor=white)
 ![Terraform](https://img.shields.io/badge/Terraform-AWS-7B42BC?logo=terraform&logoColor=white)
 
----
 
-## 🚀 Canlı Demo
-
-Web arayüzü statik olarak yayınlanır (backend olmadan örnek veriyle tam çalışır):
-
-**🔗 https://beray104.github.io/bulutkasifleri/**  ·  Giriş: `admin` / `admin123`
-
----
 
 ## ✨ Özellikler
 
