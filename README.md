@@ -153,4 +153,23 @@ Ayrıntılı teknik raporlar [`docs/`](docs/) klasöründedir:
 
 ## 📌 Fonksiyonel Gereksinimler
 
-Veri Toplama · Gerçek Zamanlı Analiz · Duygu Analizi · Trend Belirleme · Web Arayüzü · Görselleştirme
+- **Veri Toplama:** Sistem sosyal medya platformlarından veri toplayabilmelidir.
+- **Gerçek Zamanlı Analiz:** Sistem toplanan verileri gerçek zamanlı olarak analiz edebilmelidir.
+- **Duygu Analizi:** Sistem sosyal medya paylaşımlarının duygu analizini gerçekleştirebilmelidir.
+- **Trend Belirleme:** Sistem trend olan konuları belirleyebilmelidir.
+- **Web Arayüzü:** Kullanıcılar analiz sonuçlarını web arayüzü üzerinden görüntüleyebilmelidir.
+- **Görselleştirme:** Kullanıcılar verileri grafik veya tablo şeklinde inceleyebilmelidir.
+
+---
+
+## 🎬 Kullanım Senaryosu (Use Case)
+
+**Aktör:** Kullanıcı
+
+**Senaryo akışı:**
+1. Kullanıcı sisteme giriş yapar.
+2. Kullanıcı sosyal medya analiz panelini açar.
+3. Sistem sosyal medya verilerini toplar.
+4. Sistem verileri gerçek zamanlı olarak analiz eder.
+5. Sistem trend konuları belirler ve duygu analizini yapar.
+6. Kullanıcı analiz sonuçlarını grafik veya tablo şeklinde görüntüler.
